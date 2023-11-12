@@ -1,32 +1,21 @@
 ---
-// The frontmatter: Component Script (JavaScript)
+
+import NavLink from '@components/ui/NavLink.astro'
+
 const navLinks = [
     { label: 'Home', href: '/'},
     { label: 'About', href: '/about'},
     { label: 'Work', href: '/work'},
     { label: 'Blog', href: '/blog'}
-]    
+]
 ---
 
-<!-- Component Template (HTML + JS Expressions) -->
-{/* JS comment syntax is also valid! */}
-
-<header>
+<header class="bg-slate-50 p-8 border-b">
     <nav>
-        <ul>
-            { navLinks.map( ({label, href}) => (
-                <li><a href={href}>{label}</a></li>
-                ))
-            }
+        <ul class="flex gap-8">
+            { navLinks.map( link => (
+                <li><NavLink href={link.href} label={link.label} /></li> 
+            ))}
         </ul>
     </nav>
 </header>
-
-<style>
-    /* Scoped styles: only applied in this component */
-    a { color: blueviolet }
-</style>
-
-<script>
-    // You could add some JS here also
-</script>
