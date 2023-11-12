@@ -1,0 +1,32 @@
+---
+// The frontmatter: Component Script (JavaScript)
+const navLinks = [
+    { label: 'Home', href: '/'},
+    { label: 'About', href: '/about'},
+    { label: 'Work', href: '/work'},
+    { label: 'Blog', href: '/blog'}
+]    
+---
+
+<!-- Component Template (HTML + JS Expressions) -->
+{/* JS comment syntax is also valid! */}
+
+<header>
+    <nav>
+        <ul>
+            { navLinks.map( ({label, href}) => (
+                <li><a href={href}>{label}</a></li>
+                ))
+            }
+        </ul>
+    </nav>
+</header>
+
+<style>
+    /* Scoped styles: only applied in this component */
+    a { color: blueviolet }
+</style>
+
+<script>
+    // You could add some JS here also
+</script>
