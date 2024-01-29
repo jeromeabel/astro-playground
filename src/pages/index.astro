@@ -1,8 +1,26 @@
 ---
+import { type CollectionEntry, getCollection } from 'astro:content';
 import Layout from '@/layouts/Layout.astro';
 import H1 from '@/components/base/H1.astro';
+import H2 from '@/components/base/H2.astro';
+import Section from '@/components/base/Section.astro';
+import Link from '@/components/base/Link.astro';
+
+const posts: CollectionEntry<'blog'>[] = await getCollection('blog');
 ---
 
 <Layout>
   <H1>Astro Playground</H1>
+  <Section>
+    <H2>Blog posts</H2>
+    <ul>
+      {
+        posts.map((post) => (
+          <li>
+            <Link href={`/blog/${post.slug}`}>{post.data.title}</Link>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
 </Layout>
