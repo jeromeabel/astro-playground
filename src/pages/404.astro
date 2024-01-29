@@ -1,0 +1,14 @@
+---
+import { Image } from 'astro:assets';
+
+import Layout from '@/layouts/Layout.astro';
+import H1 from '@/components/base/H1.astro';
+
+import img404 from '@/assets/images/404.png';
+---
+
+<Layout title='Not Found'>
+  <H1>Oups!</H1>
+  <a href='/'>Return to home</a>
+  <Image src={img404} alt='' aria-hidden='true' loading='eager' />
+</Layout>

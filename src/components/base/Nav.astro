@@ -1,0 +1,16 @@
+---
+import { SITE } from '@/config/site';
+import Link from '@/components/base/Link.astro';
+---
+
+<nav>
+  <ul class='flex gap-4 lg:gap-8'>
+    {
+      SITE.nav.map((link) => (
+        <li>
+          <Link href={link.href}>{link.label}</Link>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

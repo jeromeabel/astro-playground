@@ -1,0 +1,17 @@
+---
+import { SITE } from '@/config/site';
+
+import Container from '@/components/base/Container.astro';
+import { Icon } from 'astro-icon/components';
+---
+
+<footer class='py-16 bg-black text-white'>
+  <Container>
+    <p>{SITE.description}</p>
+    <p>
+      Made with <Icon name='HeroiconsSolidHeart' class='h-8 inline' /> by {
+        SITE.author
+      }
+    </p>
+  </Container>
+</footer>
