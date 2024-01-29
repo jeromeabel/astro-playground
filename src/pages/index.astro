@@ -17,7 +17,7 @@ const posts: CollectionEntry<'blog'>[] = await getCollection('blog');
       {
         posts.map((post) => (
           <li>
-            <Link href={`/blog/${post.slug}`}>{post.data.title}</Link>
+            <Link href={`/blog/${post.slug}`}>{post.data.title} &rarr;</Link>
           </li>
         ))
       }

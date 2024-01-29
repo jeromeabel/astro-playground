@@ -1,5 +1,5 @@
 ---
-title: 'Selected Projects: Making a Difference in the World of Meditation'
+title: 'Selected Projects'
 date: 2023-09-07
 description: 'Dive into the selected projects that are shaping the landscape of meditation and mindfulness.'
 ---

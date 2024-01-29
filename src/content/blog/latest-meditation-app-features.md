@@ -1,5 +1,5 @@
 ---
-title: Unlocking Inner Peace with the Latest Meditation App Features
+title: Latest Meditation App Features
 date: 2023-08-07
 description: 'Explore the newest features in our meditation app that take your mindfulness journey to new heights!'
 ---
