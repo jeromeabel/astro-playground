@@ -1,6 +1,5 @@
 ---
 title: 'Meditation for a Better World: Contributing to Mindfulness'
-tags: ['meditation', 'community', 'donations']
 date: 2023-10-01
 description: 'Learn how your contributions can shape a more mindful world through our meditation app.'
 ---

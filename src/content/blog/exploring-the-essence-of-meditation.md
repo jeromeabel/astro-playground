@@ -1,6 +1,5 @@
 ---
 title: 'The Meditative Journey: Exploring the Essence of Meditation'
-tags: ['meditation', 'mindfulness', 'inner journey']
 date: 2023-08-01
 description: 'Embark on a profound meditative journey and discover the true essence of mindfulness.'
 ---

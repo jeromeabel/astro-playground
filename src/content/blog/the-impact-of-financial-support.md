@@ -1,6 +1,5 @@
 ---
 title: 'Empowering Minds: The Impact of Financial Support on Our Meditation Project'
-tags: ['meditation', 'app', 'financial support']
 date: 2023-08-18
 description: 'Discover how financial contributions empower the growth and impact of our meditation project.'
 ---
