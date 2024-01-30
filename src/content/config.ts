@@ -11,7 +11,7 @@ const blogCollection = defineCollection({
 });
 
 const additionalCollection = defineCollection({
-  type: 'data',
+  type: 'content',
   schema: z.object({
     title: z.string().optional(),
   }),
