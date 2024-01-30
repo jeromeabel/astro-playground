@@ -1,19 +1,19 @@
 ---
-import { type CollectionEntry, getCollection, getEntries } from 'astro:content';
+import { type CollectionEntry, getCollection, getEntries } from "astro:content";
 
-import Layout from '@/layouts/Layout.astro';
-import H1 from '@/components/base/H1.astro';
-import Prose from '@/components/base/Prose.astro';
-import Section from '@/components/base/Section.astro';
-import Link from '@/components/base/Link.astro';
-import H2 from '@/components/base/H2.astro';
+import Layout from "@/layouts/Layout.astro";
+import H1 from "@/components/base/H1.astro";
+import Prose from "@/components/base/Prose.astro";
+import Section from "@/components/base/Section.astro";
+import Link from "@/components/base/Link.astro";
+import H2 from "@/components/base/H2.astro";
 
 interface Props {
-  entry: CollectionEntry<'blog'>;
+  entry: CollectionEntry<"blog">;
 }
 
 export async function getStaticPaths() {
-  const blogEntries = await getCollection('blog');
+  const blogEntries = await getCollection("blog");
   return blogEntries.map((entry) => ({
     params: { slug: entry.slug },
     props: { entry },
@@ -25,12 +25,14 @@ const { Content } = await entry.render();
 //Ref: https://docs.astro.build/en/guides/content-collections/#accessing-referenced-data
 //Ref: https://docs.astro.build/fr/reference/api-reference/#getentries
 
-//Le type '"additional"' ne satisfait pas la contrainte '"blog"'.ts(2344)
-//let additionals: CollectionEntry<'additional'>[] = []; // ??
-let additionals: any[] = []; // ??!
-if (entry.data.additional) {
-  additionals = await getEntries(entry.data.additional);
-}
+const additionals = await Promise.all(
+  (await getEntries(entry.data.additional ?? [])).map(async (entry) => {
+    return {
+      ...entry,
+      ...(await entry.render()),
+    };
+  })
+);
 
 // let additionalsRender: any[] = []; // ??!
 // if (entry.data.additional) {
@@ -43,7 +45,7 @@ if (entry.data.additional) {
 ---
 
 <Layout>
-  <Link href='/'>&larr; Return to home</Link>
+  <Link href="/">&larr; Return to home</Link>
   <Section>
     <H1>{entry.data.title}</H1>
     <Prose>
@@ -55,9 +57,11 @@ if (entry.data.additional) {
     entry.data.additional ? (
       <Section>
         <H2>Additional Content</H2>
-        <div class='grid grid-cols-2'>
+        <div class="grid grid-cols-2">
           {additionals.map((additional) => (
-            <Prose>{additional.body}</Prose>
+            <Prose>
+              <additional.Content />
+            </Prose>
           ))}
         </div>
       </Section>
