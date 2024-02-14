@@ -1,7 +1,7 @@
 import type { SiteType } from '@/config/site.types';
 
 export const SITE: SiteType = {
-  name: 'Astro Playground - API Endpoints',
+  name: 'Astro Playground',
   description: 'Play with the Astro framework',
   keywords: 'Astro, playground, web, learning',
   icon: '/logo.svg',
