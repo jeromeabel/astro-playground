@@ -1,8 +1,26 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import H1 from '@/components/base/H1.astro';
+import { fetchJson } from '@/services/api';
+import H2 from '@/components/base/H2.astro';
+
+const infos = await fetchJson(`${Astro.url.origin}/api/infos`);
+// console.log(infos);
+
+export const prerender = true;
 ---
 
 <Layout>
   <H1>Astro Playground API Endpoints</H1>
+
+  <hr class='my-8' />
+  <H2>Infos from API</H2>
+  <ul class='list-disc list-inside'>
+    <li><b>Name</b>: {infos.name}</li>
+    <li><b>Description</b>: {infos.description}</li>
+    <li><b>Author</b>: {infos.author}</li>
+    <li><b>LinkedIn</b>: {infos.linkedin}</li>
+    <li><b>Github</b>: {infos.github}</li>
+  </ul>
+  <p></p>
 </Layout>
