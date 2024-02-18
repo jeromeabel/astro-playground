@@ -1,26 +1,43 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import H1 from '@/components/base/H1.astro';
-import { fetchJson } from '@/services/api';
 import H2 from '@/components/base/H2.astro';
+import Divider from '@/components/base/Divider.astro';
+// import { type SubscriberType } from '@/services/';
 
-const infos = await fetchJson(`${Astro.url.origin}/api/infos`);
-// console.log(infos);
+type SubscriberType = {
+  id: number;
+  name: string;
+  email: string;
+};
 
-// export const prerender = true;
+const subscribers: Array<SubscriberType> = await fetch(
+  `${Astro.url.origin}/api/subscribers/`
+).then((response) => response.json());
+
+const secondSubscriber: SubscriberType = await fetch(
+  `${Astro.url.origin}/api/subscribers/2`
+).then((response) => response.json());
 ---
 
 <Layout>
-  <H1>Astro Playground API Endpoints</H1>
+  <H1>Astro + API Endpoints</H1>
 
-  <hr class='my-8' />
-  <H2>Infos from API</H2>
+  <Divider />
+
+  <H2>GET 10 subscribers: "/api/subscribers"</H2>
   <ul class='list-disc list-inside'>
-    <li><b>Name</b>: {infos.name}</li>
-    <li><b>Description</b>: {infos.description}</li>
-    <li><b>Author</b>: {infos.author}</li>
-    <li><b>LinkedIn</b>: {infos.linkedin}</li>
-    <li><b>Github</b>: {infos.github}</li>
+    {
+      subscribers.map((subscriber) => (
+        <li>
+          <b>{subscriber.name}</b>: {subscriber.email}
+        </li>
+      ))
+    }
   </ul>
-  <p></p>
+
+  <Divider />
+
+  <H2>GET the second subscriber: "/api/subscribers/2"</H2>
+  <p><b>{secondSubscriber.name}</b>: {secondSubscriber.email}</p>
 </Layout>
