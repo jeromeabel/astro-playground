@@ -5,15 +5,23 @@ import H2 from '@/components/base/H2.astro';
 import Divider from '@/components/base/Divider.astro';
 // import { type SubscriberType } from '@/services/';
 
+// https://docs.astro.build/en/recipes/call-endpoints/
+import { GET } from '@/pages/api/subscribers/';
+let response = await GET(Astro);
+const subscribers: Array<SubscriberType> = await response.json();
+
+// const response = await fetch(`${Astro.url.origin}/api/subscribers/`);
+// const subscribers: Array<SubscriberType> = await response.json();
+
 type SubscriberType = {
   id: number;
   name: string;
   email: string;
 };
 
-const subscribers: Array<SubscriberType> = await fetch(
-  `${Astro.url.origin}/api/subscribers/`
-).then((response) => response.json());
+// const subscribers: Array<SubscriberType> = await fetch(
+//   `${Astro.url.origin}/api/subscribers/`
+// ).then((response) => response.json());
 
 const secondSubscriber: SubscriberType = await fetch(
   `${Astro.url.origin}/api/subscribers/2`
