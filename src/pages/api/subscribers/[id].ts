@@ -1,48 +1,14 @@
-// http://localhost:4321/api/infos/name
-// http://localhost:4321/api/infos/description
+// File: ./src/pages/api/subscribers/[id].ts
+// GET http://localhost:4321/api/subscribers/2
 
 import type { APIContext, APIRoute } from 'astro';
 
+const URL = 'https://jsonplaceholder.typicode.com/users';
+
 export const GET: APIRoute = async ({ params }: APIContext) => {
-  const id = params.id;
+  const id = params.id; // Get the params from the request
 
-  const result = await fetch(
-    `https://jsonplaceholder.typicode.com/users/${id}`
-  ).then((response) => response.json());
-
-  return new Response(JSON.stringify(result), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  const response = await fetch(`${URL}/${id}`);
+  const data = await response.json();
+  return new Response(JSON.stringify(data));
 };
-
-// import type { APIRoute } from 'astro';
-
-// const INFOS = {
-//   name: 'Astro & API',
-//   description: 'Test API endpoints with the Astro framework',
-//   author: 'Jérôme Abel',
-//   github: 'https://github.com/jeromeabel/',
-//   linkedin: 'https://www.linkedin.com/in/jerome-abel/',
-// };
-
-// export const GET: APIRoute = ({ params }) => {
-//   //context: APIContext
-//   const key = params.key as keyof typeof INFOS;
-
-//   if (!key || !(key in INFOS)) {
-//     return new Response(null, {
-//       status: 404,
-//       statusText: 'Not found, try another query parameter',
-//     });
-//   }
-
-//   return new Response(JSON.stringify(INFOS[key]), {
-//     status: 200,
-//     headers: {
-//       'Content-Type': 'application/json',
-//     },
-//   });
-// };
