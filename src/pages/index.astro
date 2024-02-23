@@ -37,4 +37,25 @@ const secondSubscriber: SubscriberType = await response2.json();
 
   <H2>GET the second subscriber: "/api/subscribers/2"</H2>
   <p><b>{secondSubscriber.name}</b>: {secondSubscriber.email}</p>
+
+  <Divider />
+
+  <H2>Add a new subscriber: POST "/api/subscribers/add"</H2>
+  <form
+    method='POST'
+    action='/api/subscribers/add'
+    class='flex flex-col gap-2 mb-8'
+  >
+    <label>
+      Email address
+      <input type='email' name='email' class='rounded-lg border p-2 max-w-96' />
+    </label>
+
+    <button
+      type='submit'
+      class='bg-black text-white hover:bg-gray-700 rounded-full px-4 py-2 w-fit h-fit'
+    >
+      Subscribe</button
+    >
+  </form>
 </Layout>

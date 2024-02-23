@@ -1,0 +1,12 @@
+---
+// File: src/pages/newsletter/failure.astro
+
+import Layout from '@/layouts/Layout.astro';
+import H1 from '@/components/base/H1.astro';
+const message = Astro.url.searchParams.get('message');
+---
+
+<Layout>
+  <H1>Oups, failure!</H1>
+  <p>{message || 'Something went wrong'}</p>
+</Layout>
