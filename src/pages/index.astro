@@ -40,7 +40,7 @@ const secondSubscriber: SubscriberType = await response2.json();
 
   <Divider />
 
-  <H2>Add a new subscriber: POST "/api/subscribers/add"</H2>
+  <H2>Add a new subscriber: POST "/api/subscribers/add" (redirection)</H2>
   <form
     method='POST'
     action='/api/subscribers/add'
@@ -58,5 +58,65 @@ const secondSubscriber: SubscriberType = await response2.json();
       Subscribe</button
     >
   </form>
-  <p>Try: steve@rogers.com to subscribe</p>
+  <p>Tip: try steve@rogers.com to subscribe</p>
+
+  <Divider />
+
+  <H2>
+    Add a new subscriber: POST "/api/subscribers/add2" (receive JSON messages)
+  </H2>
+  <form method='POST' id='newsletterForm' class='flex flex-col gap-2 mb-8'>
+    <label>
+      Email address
+      <input type='email' name='email' class='rounded-lg border p-2 max-w-96' />
+    </label>
+
+    <button
+      type='submit'
+      class='bg-black text-white hover:bg-gray-700 rounded-full px-4 py-2 w-fit h-fit'
+    >
+      Subscribe</button
+    >
+  </form>
+  <p id='newsletterFormMessage' class='text-xl my-8'>
+    Tip: try steve@rogers.com to subscribe
+  </p>
 </Layout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('newsletterForm') as HTMLFormElement;
+    const messageParagraph = document.getElementById(
+      'newsletterFormMessage'
+    ) as HTMLParagraphElement;
+
+    if (!form) {
+      console.error('Form not found');
+      return;
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget as HTMLFormElement);
+
+      try {
+        const response = await fetch('/api/subscribers/add2', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (data) {
+          messageParagraph.textContent = data.msg;
+        } else {
+          messageParagraph.textContent =
+            'Subscription failed. Please try again later.';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        messageParagraph.textContent =
+          'An error occurred. Please try again later.';
+      }
+    });
+  });
+</script>
