@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "astro-playground",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -11,13 +11,7 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.9",
-    "@tailwindcss/vite": "^4.2.4",
     "astro": "^6.2.2",
-    "astro-icon": "^1.1.5",
-    "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3"
-  },
-  "devDependencies": {
-    "@tailwindcss/typography": "^0.5.19"
   }
 }
