@@ -1,5 +1,6 @@
 import { ActionError, defineAction } from "astro:actions";
 import { z } from "astro:schema";
+import { allowedEmails, heroes } from "../data/heroes";
 
 export const server = {
   subscribe: defineAction({
@@ -8,13 +9,19 @@ export const server = {
       email: z.string().email(),
     }),
     handler: async ({ email }) => {
-      if (email === "steve@rogers.com") {
-        return { email, message: "Welcome Steve! Subscribed successfully." };
+      const hero = heroes.find((h) => h.email === email);
+      if (!hero || !allowedEmails.has(email)) {
+        throw new ActionError({
+          code: "FORBIDDEN",
+          message: "Sorry, only retired Avengers can join. Come back when you've hung up the cape!",
+        });
       }
-      throw new ActionError({
-        code: "FORBIDDEN",
-        message: `Sorry, only steve@rogers.com can subscribe.`,
-      });
+      const firstName = hero.name.split(" ")[0];
+      return {
+        email,
+        name: hero.name,
+        message: `Welcome back, ${firstName}! Enjoy your retirement.`,
+      };
     },
   }),
 };
