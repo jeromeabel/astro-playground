@@ -9,19 +9,6 @@ import "../styles/global.css";
 const response = await GET(Astro);
 const heroes: Hero[] = await response.json();
 const result = Astro.getActionResult(actions.subscribe);
-
-if (result && !result.error) {
-  const newHero = heroes.find((h) => h.email === result.data.email);
-  if (!newHero) {
-    heroes.push({
-      id: heroes.length + 1,
-      name: result.data.name,
-      alias: "?",
-      email: result.data.email,
-      retiredYear: new Date().getFullYear(),
-    });
-  }
-}
 ---
 
 <html lang="en">
