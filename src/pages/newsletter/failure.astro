@@ -1,0 +1,18 @@
+---
+import "../styles/global.css";
+const message = Astro.url.searchParams.get("message");
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Subscription failed</title>
+  </head>
+  <body class="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+    <div class="text-center space-y-4">
+      <p class="text-4xl">✗</p>
+      <h1 class="text-2xl font-semibold">Subscription failed</h1>
+      <p class="text-zinc-400">{message ?? "Something went wrong."}</p>
+      <a href="/" class="inline-block mt-4 text-sm text-zinc-400 underline hover:text-zinc-100">← Back</a>
+    </div>
+  </body>
+</html>
