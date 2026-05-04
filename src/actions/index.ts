@@ -1,6 +1,6 @@
 import { ActionError, defineAction } from "astro:actions";
 import { z } from "astro:schema";
-import { allowedEmails, heroes } from "../data/heroes";
+import { heroes } from "../data/heroes";
 
 export const server = {
   subscribe: defineAction({
@@ -10,7 +10,7 @@ export const server = {
     }),
     handler: ({ email }) => {
       const hero = heroes.find((h) => h.email === email);
-      if (!hero || !allowedEmails.has(email)) {
+      if (!hero) {
         throw new ActionError({
           code: "FORBIDDEN",
           message: "Sorry, only retired Avengers can join. Come back when you've hung up the cape!",
