@@ -4,5 +4,7 @@ import { heroes } from "../../../data/heroes";
 export const prerender = false;
 
 export const GET: APIRoute = () => {
-  return new Response(JSON.stringify(heroes));
+  return new Response(JSON.stringify(heroes), {
+    headers: { "Content-Type": "application/json" },
+  });
 };

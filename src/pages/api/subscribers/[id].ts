@@ -1,11 +1,17 @@
 import type { APIContext, APIRoute } from "astro";
+import { heroes } from "../../../data/heroes";
 
 export const prerender = false;
 
-const USERS_URL = "https://jsonplaceholder.typicode.com/users";
-
-export const GET: APIRoute = async ({ params }: APIContext) => {
-  const response = await fetch(`${USERS_URL}/${params.id}`);
-  const data = await response.json();
-  return new Response(JSON.stringify(data));
+export const GET: APIRoute = ({ params }: APIContext) => {
+  const hero = heroes.find((h) => String(h.id) === params.id);
+  if (!hero) {
+    return new Response(JSON.stringify({ error: "Not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  return new Response(JSON.stringify(hero), {
+    headers: { "Content-Type": "application/json" },
+  });
 };
