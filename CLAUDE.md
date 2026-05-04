@@ -18,12 +18,12 @@ Astro 6 with Tailwind CSS 4 (via Vite plugin, not Astro integration) and strict 
 
 **Two patterns for server logic:**
 
-1. **API Routes** (`src/pages/api/`) — standard REST endpoints exporting `GET`/`POST`/etc. as `APIRoute` functions that return `new Response(...)`. The subscribers routes proxy JSONPlaceholder as a demo data source.
+1. **API Routes** (`src/pages/api/`) — standard REST endpoints exporting `GET`/`POST`/etc. as `APIRoute` functions that return `new Response(...)`. The subscribers routes serve data from a local in-memory heroes array.
 2. **Astro Actions** (`src/actions/index.ts`) — form-based mutations using `defineAction` with Zod validation via `astro:schema`. Consumed in pages via `actions` import from `astro:actions` and `Astro.getActionResult()`.
 
 ### Subscribers example (`/subscribers`)
 
-Demonstrates API routes + Astro Actions. The subscriber list comes from JSONPlaceholder (not persisted). The subscribe action only accepts `steve@rogers.com` — any other email throws an `ActionError`. On success, Steve's email is appended to the displayed list for that request. Nothing is saved; it's a demo.
+Demonstrates API routes + Astro Actions with an "Avengers Retirement Home" theme. The hero roster lives in `src/data/heroes.ts` (not persisted — in-memory only). The subscribe action only accepts emails from the pre-defined retired Avengers list; any other email throws an `ActionError` with a humorous rejection message. On success, a personalized welcome is shown for that request. Nothing is saved; it's a demo.
 
 ## Conventions
 
