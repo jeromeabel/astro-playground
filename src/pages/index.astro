@@ -1,8 +1,42 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import H1 from '@/components/base/H1.astro';
+import { actions } from 'astro:actions';
+import { GET } from './api/subscribers/index.ts';
+
+type Subscriber = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+const response = await GET(Astro);
+const subscribers: Subscriber[] = await response.json();
+const result = Astro.getActionResult(actions.subscribe);
 ---
 
-<Layout>
-  <H1>Astro Playground</H1>
-</Layout>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Astro Playground</title>
+  </head>
+  <body>
+    <h1>Subscribers</h1>
+    <ul>
+      {subscribers.map((s) => (
+        <li><b>{s.name}</b>: {s.email}</li>
+      ))}
+    </ul>
+
+    <h2>Add Subscriber</h2>
+    <form method="POST" action={actions.subscribe}>
+      <label>
+        Email address
+        <input type="email" name="email" required />
+      </label>
+      <button type="submit">Subscribe</button>
+    </form>
+
+    {result && !result.error && (
+      <p>{result.data.message}</p>
+    )}
+  </body>
+</html>
