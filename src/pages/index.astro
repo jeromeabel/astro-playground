@@ -1,17 +1,9 @@
 ---
-import { actions } from "astro:actions";
-import { GET } from "./api/subscribers/index.ts";
 import "../styles/global.css";
 
-type Subscriber = {
-  id: number;
-  name: string;
-  email: string;
-};
-
-const response = await GET(Astro);
-const subscribers: Subscriber[] = await response.json();
-const result = Astro.getActionResult(actions.subscribe);
+const examples = [
+  { href: "/subscribers", title: "Subscribers", description: "API endpoints & Astro Actions" },
+];
 ---
 
 <html lang="en">
@@ -23,44 +15,23 @@ const result = Astro.getActionResult(actions.subscribe);
   <body class="min-h-screen bg-zinc-950 text-zinc-100">
     <main class="max-w-2xl mx-auto px-6 py-16 space-y-12">
 
-      <section class="space-y-4">
-        <h1 class="text-2xl font-semibold">Subscribers</h1>
-        <ul class="divide-y divide-zinc-800 border border-zinc-800 rounded-lg overflow-hidden">
-          {subscribers.map((s) => (
-            <li class="flex items-center justify-between px-4 py-3 text-sm hover:bg-zinc-900 transition-colors">
-              <span class="font-medium">{s.name}</span>
-              <span class="text-zinc-400">{s.email}</span>
+      <section class="space-y-2">
+        <h1 class="text-2xl font-semibold">Astro Playground</h1>
+        <p class="text-zinc-400 text-sm">A collection of examples exploring Astro features.</p>
+      </section>
+
+      <nav>
+        <ul class="space-y-3">
+          {examples.map((ex) => (
+            <li>
+              <a href={ex.href} class="block border border-zinc-800 rounded-lg px-5 py-4 hover:bg-zinc-900 transition-colors">
+                <span class="font-medium">{ex.title}</span>
+                <span class="text-zinc-400 text-sm ml-2">{ex.description}</span>
+              </a>
             </li>
           ))}
         </ul>
-      </section>
-
-      <section class="space-y-4">
-        <h2 class="text-xl font-semibold">Add Subscriber</h2>
-        <form method="POST" action={actions.subscribe} class="flex gap-3">
-          <label class="sr-only" for="email">Email address</label>
-          <input
-            id="email"
-            type="email"
-            name="email"
-            required
-            placeholder="you@example.com"
-            class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500"
-          />
-          <button
-            type="submit"
-            class="bg-zinc-100 text-zinc-950 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-white transition-colors cursor-pointer"
-          >
-            Subscribe
-          </button>
-        </form>
-        {result && !result.error && (
-          <p class="text-sm text-zinc-400">{result.data.message}</p>
-        )}
-        {result?.error && (
-          <p class="text-sm text-red-400">{result.error.message}</p>
-        )}
-      </section>
+      </nav>
 
     </main>
   </body>

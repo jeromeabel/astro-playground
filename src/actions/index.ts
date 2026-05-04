@@ -1,4 +1,4 @@
-import { defineAction } from "astro:actions";
+import { ActionError, defineAction } from "astro:actions";
 import { z } from "astro:schema";
 
 export const server = {
@@ -9,9 +9,12 @@ export const server = {
     }),
     handler: async ({ email }) => {
       if (email === "steve@rogers.com") {
-        return { message: "Welcome Steve! Subscribed successfully." };
+        return { email, message: "Welcome Steve! Subscribed successfully." };
       }
-      return { message: `Sorry ${email}, you're not Steve Rogers.` };
+      throw new ActionError({
+        code: "FORBIDDEN",
+        message: `Sorry, only steve@rogers.com can subscribe.`,
+      });
     },
   }),
 };
