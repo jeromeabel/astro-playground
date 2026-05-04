@@ -8,7 +8,7 @@ export const server = {
     input: z.object({
       email: z.string().email(),
     }),
-    handler: async ({ email }) => {
+    handler: ({ email }) => {
       const hero = heroes.find((h) => h.email === email);
       if (!hero || !allowedEmails.has(email)) {
         throw new ActionError({
