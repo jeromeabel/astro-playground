@@ -1,0 +1,70 @@
+---
+// src/pages/residents/index.astro
+export const prerender = false;
+import { GET } from "../api/residents/index.ts";
+import type { Hero } from "../../data/heroes";
+import "../../styles/global.css";
+
+const response = await GET(Astro);
+const residents: Hero[] = await response.json();
+
+const patterns = [
+  { href: "/residents/list",          title: "GET — list residents",       blurb: "Fetch JSON from an endpoint." },
+  { href: "/residents/join-redirect", title: "POST + redirect (Pattern A)", blurb: "Form posts, server redirects." },
+  { href: "/residents/join-json",     title: "POST + JSON (Pattern B)",     blurb: "Form posts via fetch, DOM updates." },
+  { href: "/residents/join-action",   title: "Astro Action (Pattern C)",    blurb: "defineAction + Zod, zero JS." },
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Avengers Retirement Home — Astro Playground</title>
+  </head>
+  <body class="min-h-screen bg-zinc-950 text-zinc-100">
+    <main class="max-w-2xl mx-auto px-6 py-16 space-y-12">
+
+      <a href="/" class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors">&larr; Back</a>
+
+      <section class="space-y-2">
+        <h1 class="text-2xl font-semibold">Avengers Retirement Home</h1>
+        <p class="text-zinc-400 text-sm">
+          Companion playground for the blog post on Astro API endpoints. Each link
+          below shows one server-side pattern.
+        </p>
+      </section>
+
+      <nav>
+        <ul class="space-y-3">
+          {patterns.map((p) => (
+            <li>
+              <a href={p.href} class="block border border-zinc-800 rounded-lg px-5 py-4 hover:bg-zinc-900 transition-colors">
+                <span class="font-medium">{p.title}</span>
+                <span class="text-zinc-400 text-sm ml-2">{p.blurb}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <section class="space-y-3">
+        <h2 class="text-sm font-semibold text-zinc-400 uppercase tracking-wide">
+          Current residents <span class="text-zinc-600 font-normal normal-case">({residents.length})</span>
+        </h2>
+        <ul class="divide-y divide-zinc-800 border border-zinc-800 rounded-lg overflow-hidden">
+          {residents.map((h) => (
+            <li class="flex items-center justify-between px-4 py-3 text-sm">
+              <div>
+                <span class="font-medium">{h.alias}</span>
+                <span class="text-zinc-500 ml-2 text-xs">retired {h.retiredYear}</span>
+              </div>
+              <span class="text-zinc-400 font-mono text-xs">{h.email}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+    </main>
+  </body>
+</html>

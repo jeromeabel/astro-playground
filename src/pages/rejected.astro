@@ -1,0 +1,26 @@
+---
+// src/pages/rejected.astro
+export const prerender = false;
+import "../styles/global.css";
+
+const reason =
+  Astro.url.searchParams.get("reason") ??
+  "We could not verify your identity.";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Rejected — Avengers Retirement Home</title>
+  </head>
+  <body class="min-h-screen bg-zinc-950 text-zinc-100">
+    <main class="max-w-2xl mx-auto px-6 py-16 space-y-8">
+      <a href="/residents" class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors">&larr; Back to residents</a>
+      <section class="space-y-2">
+        <h1 class="text-2xl font-semibold text-red-400">Application rejected</h1>
+        <p class="text-zinc-400 text-sm">{reason}</p>
+      </section>
+    </main>
+  </body>
+</html>

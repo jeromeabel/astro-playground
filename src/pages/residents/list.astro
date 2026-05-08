@@ -1,0 +1,45 @@
+---
+// src/pages/residents/list.astro
+export const prerender = false;
+import type { Hero } from "../../data/heroes";
+import "../../styles/global.css";
+
+// Pattern: server-side fetch from inside the page frontmatter.
+// Equivalent direct-import alternative (no HTTP roundtrip):
+//   import { GET } from "../api/residents/index.ts";
+//   const response = await GET(Astro);
+const response = await fetch(`${Astro.url.origin}/api/residents/`);
+const residents: Hero[] = await response.json();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>GET demo — Avengers Retirement Home</title>
+  </head>
+  <body class="min-h-screen bg-zinc-950 text-zinc-100">
+    <main class="max-w-2xl mx-auto px-6 py-16 space-y-8">
+      <a href="/residents" class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors">&larr; Back</a>
+      <section class="space-y-2">
+        <h1 class="text-2xl font-semibold">GET — list residents</h1>
+        <p class="text-zinc-400 text-sm">
+          This page calls <code class="text-zinc-300">/api/residents/</code> from
+          its frontmatter and renders the JSON server-side.
+        </p>
+      </section>
+      <ul class="divide-y divide-zinc-800 border border-zinc-800 rounded-lg overflow-hidden">
+        {residents.map((h) => (
+          <li class="flex items-center justify-between px-4 py-3 text-sm">
+            <span class="font-medium">{h.alias}</span>
+            <span class="text-zinc-400 font-mono text-xs">{h.email}</span>
+          </li>
+        ))}
+      </ul>
+      <p class="text-zinc-500 text-xs">
+        Try the dynamic route too:
+        <a class="underline hover:text-zinc-300" href="/api/residents/2">/api/residents/2</a>
+      </p>
+    </main>
+  </body>
+</html>
