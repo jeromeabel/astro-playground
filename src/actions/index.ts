@@ -18,12 +18,13 @@ export const server = {
       }
       const firstName = hero.name.split(" ")[0];
       if (residents.find((r) => r.email === email)) {
-        return { email, name: hero.name, message: `${firstName}, you're already settled in!` };
+        return { email, name: hero.name, settled: true, message: `${firstName}, you're already settled in!` };
       }
       residents.push(hero);
       return {
         email,
         name: hero.name,
+        settled: false,
         message: `Welcome, ${firstName}! Your slippers await.`,
       };
     },

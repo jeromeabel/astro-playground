@@ -56,10 +56,17 @@ const firstSettled = residents[0];
     </form>
 
     {result && !result.error && (
-      <div class="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
-        <Icon name="check-circle" class="h-5 w-5 flex-shrink-0" />
-        <span>{result.data.message}</span>
-      </div>
+      result.data.settled ? (
+        <div class="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300">
+          <Icon name="info" class="h-5 w-5 flex-shrink-0" />
+          <span>{result.data.message}</span>
+        </div>
+      ) : (
+        <div class="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
+          <Icon name="check-circle" class="h-5 w-5 flex-shrink-0" />
+          <span>{result.data.message}</span>
+        </div>
+      )
     )}
     {result?.error && (
       <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-300">

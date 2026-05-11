@@ -20,13 +20,23 @@ const message = already
     </a>
 
     <section class="space-y-4">
-      <div class="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 dark:border-emerald-900 dark:bg-emerald-950">
-        <Icon name="check-circle" class="h-6 w-6 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
-        <div class="space-y-1">
-          <h1 class="text-xl font-semibold text-emerald-900 dark:text-emerald-200">{message}</h1>
-          <p class="text-sm text-emerald-800 dark:text-emerald-300">Enjoy the lounge.</p>
+      {already ? (
+        <div class="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 px-5 py-4 dark:border-blue-900 dark:bg-blue-950">
+          <Icon name="info" class="h-6 w-6 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+          <div class="space-y-1">
+            <h1 class="text-xl font-semibold text-blue-900 dark:text-blue-200">{message}</h1>
+            <p class="text-sm text-blue-800 dark:text-blue-300">Enjoy the lounge.</p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div class="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 dark:border-emerald-900 dark:bg-emerald-950">
+          <Icon name="check-circle" class="h-6 w-6 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <div class="space-y-1">
+            <h1 class="text-xl font-semibold text-emerald-900 dark:text-emerald-200">{message}</h1>
+            <p class="text-sm text-emerald-800 dark:text-emerald-300">Enjoy the lounge.</p>
+          </div>
+        </div>
+      )}
     </section>
   </main>
 </Layout>

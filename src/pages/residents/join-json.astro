@@ -81,6 +81,13 @@ const firstSettled = residents[0];
         <path d="m9 11 3 3L22 4"></path>
       </svg>
     </template>
+    <template id="iconInfo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" class="h-5 w-5 flex-shrink-0" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+    </template>
     <template id="iconAlert">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 flex-shrink-0" aria-hidden="true">
         <circle cx="12" cy="12" r="10"></circle>
@@ -109,13 +116,17 @@ const firstSettled = residents[0];
       const STYLES = {
         pending: "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400",
         success: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300",
+        info:    "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300",
         error:   "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-300",
       } as const;
+
+      const iconInfo = document.getElementById("iconInfo") as HTMLTemplateElement;
 
       const renderMessage = (variant: keyof typeof STYLES, text: string) => {
         const wrapper = document.createElement("div");
         wrapper.className = `flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${STYLES[variant]}`;
         if (variant === "success") wrapper.appendChild(iconCheck.content.cloneNode(true));
+        if (variant === "info")    wrapper.appendChild(iconInfo.content.cloneNode(true));
         if (variant === "error")   wrapper.appendChild(iconAlert.content.cloneNode(true));
         const span = document.createElement("span");
         span.textContent = text;
@@ -152,8 +163,8 @@ const firstSettled = residents[0];
             method: "POST",
             body: new FormData(form),
           });
-          const data = (await response.json()) as { ok: boolean; msg: string };
-          renderMessage(data.ok ? "success" : "error", data.msg);
+          const data = (await response.json()) as { ok: boolean; settled?: boolean; msg: string };
+          renderMessage(data.ok ? (data.settled ? "info" : "success") : "error", data.msg);
 
           if (data.ok && !wasAlreadySettled) {
             settled.add(email);

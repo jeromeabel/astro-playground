@@ -4,7 +4,7 @@ import { heroes, residents } from "../../../data/heroes";
 
 export const prerender = false;
 
-type JoinResponse = { ok: boolean; msg: string };
+type JoinResponse = { ok: boolean; settled?: boolean; msg: string };
 
 export const POST: APIRoute = async ({ request }: APIContext) => {
   const formData = await request.formData();
@@ -17,11 +17,11 @@ export const POST: APIRoute = async ({ request }: APIContext) => {
 
   const firstName = hero.name.split(" ")[0];
   if (residents.find((r) => r.email === email)) {
-    return json({ ok: true, msg: `${firstName}, you're already settled in!` });
+    return json({ ok: true, settled: true, msg: `${firstName}, you're already settled in!` });
   }
 
   residents.push(hero);
-  return json({ ok: true, msg: `Welcome, ${firstName}! Your slippers await.` });
+  return json({ ok: true, settled: false, msg: `Welcome, ${firstName}! Your slippers await.` });
 };
 
 function json(body: JoinResponse, status = 200): Response {
