@@ -1,5 +1,5 @@
 ---
-import "../styles/global.css";
+import styles from "../styles/global.css?inline";
 
 interface Props {
   title: string;
@@ -24,6 +24,7 @@ const { title, description } = Astro.props;
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090b" />
     <title>{title}</title>
+    <style set:html={styles} />
   </head>
   <body class="min-h-screen bg-white text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
     <slot />
