@@ -7,7 +7,7 @@ Companion repository for the blog post
 
 ## Live demo
 
-https://astro-playground-jeromeabel.netlify.app/
+https://astro-jeromeabel.netlify.app/
 
 ## Setup
 

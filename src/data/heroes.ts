@@ -7,21 +7,13 @@ export type Hero = {
 };
 
 export const heroes: Hero[] = [
-  { id: 1,  name: "Steve Rogers",    alias: "Captain America",   email: "steve@rogers.com",     retiredYear: 2023 },
-  { id: 2,  name: "Tony Stark",      alias: "Iron Man",          email: "tony@stark.com",       retiredYear: 2019 },
-  { id: 3,  name: "Natasha Romanoff",alias: "Black Widow",       email: "natasha@romanoff.com", retiredYear: 2019 },
-  { id: 4,  name: "Bruce Banner",    alias: "Hulk",              email: "bruce@banner.com",     retiredYear: 2023 },
-  { id: 5,  name: "Clint Barton",    alias: "Hawkeye",           email: "clint@barton.com",     retiredYear: 2024 },
-  { id: 6,  name: "Thor Odinson",    alias: "Thor",              email: "thor@odinson.com",     retiredYear: 2024 },
-  { id: 7,  name: "Wanda Maximoff",  alias: "Scarlet Witch",     email: "wanda@maximoff.com",   retiredYear: 2025 },
-  { id: 8,  name: "Scott Lang",      alias: "Ant-Man",           email: "scott@lang.com",       retiredYear: 2025 },
-  { id: 9,  name: "Sam Wilson",      alias: "Captain America",   email: "sam@wilson.com",       retiredYear: 2025 },
-  { id: 10, name: "Carol Danvers",   alias: "Captain Marvel",    email: "carol@danvers.com",    retiredYear: 2024 },
+  { id: 1, name: "Bob Dude",     alias: "Super Yellow",     email: "bob@super.com",   retiredYear: 2021 },
+  { id: 2, name: "Jane Doe",     alias: "Wonder Great",     email: "jane@super.com",  retiredYear: 2019 },
+  { id: 3, name: "Gary Normal",  alias: "Captain Adequate", email: "gary@super.com",  retiredYear: 2020 },
+  { id: 4, name: "Linda Bland",  alias: "The Forgettable",  email: "linda@super.com", retiredYear: 2018 },
+  { id: 5, name: "Frank Static", alias: "Idle Man",         email: "frank@super.com", retiredYear: 2022 },
+  { id: 6, name: "Debra Mild",   alias: "Lady Average",     email: "debra@super.com", retiredYear: 2017 },
+  { id: 7, name: "Phil Meh",     alias: "Beige Lightning",  email: "phil@super.com",  retiredYear: 2024 },
 ];
 
-export const allowedEmails = new Set(heroes.map((h) => h.email));
-
-// Pre-seeded residents — Steve is absent so his join can be demonstrated
-export const residents: Hero[] = heroes.filter((h) =>
-  ["tony@stark.com", "natasha@romanoff.com", "thor@odinson.com"].includes(h.email)
-);
+export const residents: Hero[] = [heroes[0], heroes[1]];

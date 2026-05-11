@@ -1,77 +1,163 @@
 ---
-// src/pages/residents/join-json.astro
 export const prerender = false;
-import "../../styles/global.css";
+import { heroes, residents } from "../../data/heroes";
+import Layout from "../../layouts/Layout.astro";
+import Icon from "../../components/Icon.astro";
+
+// Snapshot current state at page-render time.
+// Used to seed client-side tracking so the hint stays accurate
+// within the same browser session (no page reloads in Pattern B).
+const residentEmails = new Set(residents.map((r) => r.email));
+const heroData = heroes.map((h) => ({ id: h.id, email: h.email }));
+const firstAccepted = heroes.find((h) => !residentEmails.has(h.email));
+const firstSettled = residents[0];
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>POST + JSON (Pattern B) — Avengers Retirement Home</title>
-  </head>
-  <body class="min-h-screen bg-zinc-950 text-zinc-100">
-    <main class="max-w-2xl mx-auto px-6 py-16 space-y-8">
-      <a href="/residents" class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors">&larr; Back</a>
+<Layout title="B — POST + JSON — Heroes Retirement Home">
+  <main class="mx-auto max-w-2xl space-y-8 px-6 py-12">
+    <a
+      href="/residents"
+      class="inline-flex items-center gap-1.5 text-sm text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+    >
+      <Icon name="arrow-left" class="h-4 w-4" /> Back
+    </a>
 
-      <section class="space-y-2">
-        <h1 class="text-2xl font-semibold">POST + JSON (Pattern B)</h1>
-        <p class="text-zinc-400 text-sm">
-          A client-side handler intercepts the submit, calls
-          <code class="text-zinc-300">/api/residents/join-json</code>, and writes the
-          response message into the page. No navigation.
-        </p>
-      </section>
-
-      <form method="POST" id="joinForm" class="flex gap-3">
-        <label class="sr-only" for="email">Hero email address</label>
-        <input
-          id="email"
-          type="email"
-          name="email"
-          required
-          placeholder="hero@example.com"
-          class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500"
-        />
-        <button
-          type="submit"
-          class="bg-zinc-100 text-zinc-950 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-white transition-colors cursor-pointer"
-        >
-          Apply
-        </button>
-      </form>
-
-      <p id="joinFormMessage" class="text-sm min-h-5"></p>
-
-      <p class="text-zinc-500 text-xs">
-        Try <code class="text-zinc-300">steve@rogers.com</code> (accepted),
-        <code class="text-zinc-300">tony@stark.com</code> (already a resident),
-        or <code class="text-zinc-300">peter@parker.com</code> (rejected).
+    <section class="space-y-2">
+      <h1 class="text-2xl font-semibold">B — POST + JSON</h1>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400">
+        A client-side handler intercepts the submit, calls
+        <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+          /api/residents/join-json
+        </code>, and writes the response message into the page. No navigation.
       </p>
+    </section>
 
-      <script>
-        const form = document.getElementById("joinForm") as HTMLFormElement;
-        const message = document.getElementById("joinFormMessage")!;
+    <form method="POST" id="joinForm" class="flex gap-3">
+      <label class="sr-only" for="email">Hero email address</label>
+      <input
+        id="email"
+        type="email"
+        name="email"
+        required
+        placeholder="hero@example.com"
+        class="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-500 dark:focus:ring-zinc-300"
+      />
+      <button
+        type="submit"
+        class="cursor-pointer rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+      >
+        Apply
+      </button>
+    </form>
 
-        form.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          message.textContent = "Submitting…";
-          message.className = "text-sm min-h-5 text-zinc-400";
+    {/* No placeholder height — only rendered by JS after first submit, same as Pattern C */}
+    <div id="joinFormMessage"></div>
 
-          try {
-            const response = await fetch("/api/residents/join-json", {
-              method: "POST",
-              body: new FormData(form),
-            });
-            const data = (await response.json()) as { ok: boolean; msg: string };
-            message.textContent = data.msg;
-            message.className = `text-sm min-h-5 ${data.ok ? "text-emerald-400" : "text-red-400"}`;
-          } catch {
-            message.textContent = "Network error — try again.";
-            message.className = "text-sm min-h-5 text-red-400";
+    <p id="joinHint" class="text-xs text-zinc-500 dark:text-zinc-400">
+      {firstAccepted ? (
+        <>Try <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{firstAccepted.email}</code> (will join),{" "}</>
+      ) : (
+        <>All heroes have joined! Try{" "}</>
+      )}
+      <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{firstSettled?.email ?? "bob@super.com"}</code>
+      {" "}(already a resident), or{" "}
+      <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">villain@evil.com</code>
+      {" "}(rejected).
+    </p>
+
+    {/* Server-side data for client-side hint tracking */}
+    <script type="application/json" id="heroData" set:text={JSON.stringify(heroData)} />
+    <script type="application/json" id="residentData" set:text={JSON.stringify([...residentEmails])} />
+
+    <template id="iconCheck">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 flex-shrink-0" aria-hidden="true">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <path d="m9 11 3 3L22 4"></path>
+      </svg>
+    </template>
+    <template id="iconAlert">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 flex-shrink-0" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </template>
+
+    <script>
+      type HeroRef = { id: number; email: string };
+
+      const form = document.getElementById("joinForm") as HTMLFormElement;
+      const message = document.getElementById("joinFormMessage")!;
+      const hint = document.getElementById("joinHint")!;
+      const iconCheck = document.getElementById("iconCheck") as HTMLTemplateElement;
+      const iconAlert = document.getElementById("iconAlert") as HTMLTemplateElement;
+
+      const allHeroes = JSON.parse(
+        document.getElementById("heroData")!.textContent!
+      ) as HeroRef[];
+
+      // Track who is settled in this session (server snapshot + new joins)
+      const settled = new Set<string>(
+        JSON.parse(document.getElementById("residentData")!.textContent!) as string[]
+      );
+
+      const STYLES = {
+        pending: "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400",
+        success: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300",
+        error:   "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-300",
+      } as const;
+
+      const renderMessage = (variant: keyof typeof STYLES, text: string) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = `flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${STYLES[variant]}`;
+        if (variant === "success") wrapper.appendChild(iconCheck.content.cloneNode(true));
+        if (variant === "error")   wrapper.appendChild(iconAlert.content.cloneNode(true));
+        const span = document.createElement("span");
+        span.textContent = text;
+        wrapper.appendChild(span);
+        message.replaceChildren(wrapper);
+      };
+
+      const code = (text: string) => {
+        const el = document.createElement("code");
+        el.className = "rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300";
+        el.textContent = text;
+        return el;
+      };
+
+      // Update the hint to reflect new state: the just-joined hero becomes the
+      // "already settled" example; the next available hero becomes "will join".
+      const updateHint = (justJoined: string) => {
+        const next = allHeroes.find((h) => !settled.has(h.email));
+        const parts: (string | Node)[] = next
+          ? ["Try ", code(next.email), " (will join), ", code(justJoined), " (already a resident), or ", code("villain@evil.com"), " (rejected)."]
+          : ["Everyone has joined! Try ", code(justJoined), " (already a resident) or ", code("villain@evil.com"), " (rejected)."];
+        hint.replaceChildren(...parts);
+      };
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        renderMessage("pending", "Submitting…");
+
+        const email = String(new FormData(form).get("email") ?? "");
+        const wasAlreadySettled = settled.has(email);
+
+        try {
+          const response = await fetch("/api/residents/join-json", {
+            method: "POST",
+            body: new FormData(form),
+          });
+          const data = (await response.json()) as { ok: boolean; msg: string };
+          renderMessage(data.ok ? "success" : "error", data.msg);
+
+          if (data.ok && !wasAlreadySettled) {
+            settled.add(email);
+            updateHint(email);
           }
-        });
-      </script>
-    </main>
-  </body>
-</html>
+        } catch {
+          renderMessage("error", "Network error — try again.");
+        }
+      });
+    </script>
+  </main>
+</Layout>

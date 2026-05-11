@@ -1,0 +1,42 @@
+---
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+import type { Hero } from "../data/heroes";
+
+interface Props {
+  hero: Hero;
+  portrait: ImageMetadata | null;
+  class?: string;
+}
+
+const { hero, portrait, class: className = "aspect-square w-full rounded-lg object-cover" } = Astro.props;
+
+const initials = hero.alias
+  .split(/\s+/)
+  .map((w) => w[0])
+  .slice(0, 2)
+  .join("")
+  .toUpperCase();
+
+const palettes = [
+  "from-yellow-200 to-blue-200 text-orange-900",
+  "from-amber-200 to-rose-200 text-rose-900",
+  "from-sky-200 to-indigo-200 text-indigo-900",
+  "from-emerald-200 to-teal-200 text-teal-900",
+  "from-fuchsia-200 to-purple-200 text-purple-900",
+  "from-lime-200 to-green-200 text-green-900",
+  "from-cyan-200 to-blue-200 text-blue-900",
+];
+const palette = palettes[hero.id % palettes.length];
+---
+
+{portrait ? (
+  <Image src={portrait} alt={hero.alias} class={className} width={400} height={400} />
+) : (
+  <div
+    class={`${className} flex items-center justify-center bg-gradient-to-br ${palette} select-none font-bold text-2xl`}
+    aria-label={hero.alias}
+  >
+    {initials}
+  </div>
+)}

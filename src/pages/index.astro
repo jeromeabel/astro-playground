@@ -1,38 +1,38 @@
 ---
-import "../styles/global.css";
+import Layout from "../layouts/Layout.astro";
 
 const examples = [
-  { href: "/residents", title: "Avengers Retirement Home", description: "API endpoints & Astro Actions — companion to the blog post" },
+  {
+    href: "/residents",
+    title: "Heroes Retirement Home",
+    description: "API endpoints & Astro Actions — companion to the blog post",
+  },
 ];
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Astro Playground</title>
-  </head>
-  <body class="min-h-screen bg-zinc-950 text-zinc-100">
-    <main class="max-w-2xl mx-auto px-6 py-16 space-y-12">
+<Layout title="Astro Playground" description="A collection of examples exploring Astro features.">
+  <main class="mx-auto max-w-2xl space-y-12 px-6 py-16">
+    <section class="space-y-2">
+      <h1 class="text-2xl font-semibold">Astro Playground</h1>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400">
+        A collection of examples exploring Astro features.
+      </p>
+    </section>
 
-      <section class="space-y-2">
-        <h1 class="text-2xl font-semibold">Astro Playground</h1>
-        <p class="text-zinc-400 text-sm">A collection of examples exploring Astro features.</p>
-      </section>
-
-      <nav>
-        <ul class="space-y-3">
-          {examples.map((ex) => (
-            <li>
-              <a href={ex.href} class="block border border-zinc-800 rounded-lg px-5 py-4 hover:bg-zinc-900 transition-colors">
-                <span class="font-medium">{ex.title}</span>
-                <span class="text-zinc-400 text-sm ml-2">{ex.description}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-    </main>
-  </body>
-</html>
+    <nav>
+      <ul class="space-y-3">
+        {examples.map((ex) => (
+          <li>
+            <a
+              href={ex.href}
+              class="block rounded-lg border border-zinc-200 px-5 py-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+            >
+              <span class="font-medium">{ex.title}</span>
+              <span class="ml-2 text-sm text-zinc-600 dark:text-zinc-400">{ex.description}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </main>
+</Layout>

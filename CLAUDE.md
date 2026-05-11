@@ -21,9 +21,11 @@ Astro 6 with Tailwind CSS 4 (via Vite plugin, not Astro integration) and strict 
 1. **API Routes** (`src/pages/api/`) — standard REST endpoints exporting `GET`/`POST`/etc. as `APIRoute` functions that return `new Response(...)`. The subscribers routes serve data from a local in-memory heroes array.
 2. **Astro Actions** (`src/actions/index.ts`) — form-based mutations using `defineAction` with Zod validation via `astro:schema`. Consumed in pages via `actions` import from `astro:actions` and `Astro.getActionResult()`.
 
-### Subscribers example (`/subscribers`)
+### Residents example (`/residents`)
 
-Demonstrates API routes + Astro Actions with an "Avengers Retirement Home" theme. The hero roster lives in `src/data/heroes.ts` (not persisted — in-memory only). The subscribe action only accepts emails from the pre-defined retired Avengers list; any other email throws an `ActionError` with a humorous rejection message. On success, a personalized welcome is shown for that request. Nothing is saved; it's a demo.
+Demonstrates API routes + Astro Actions with a generic "Heroes Retirement Home" theme. The hero roster lives in `src/data/heroes.ts` (not persisted — in-memory only). Three POST patterns are shown side by side: A (redirect), B (JSON), C (Astro Action). The `join` action only accepts emails from the pre-defined retired heroes list; any other email throws an `ActionError` with a rejection message. On success, a personalized welcome is shown for that request. Nothing is saved across cold starts; it's a demo.
+
+Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme-color) and a light-by-default body with `dark:` variants that follow `prefers-color-scheme`. Reusable bits live in `src/components/` (`Icon.astro` for inline SVG icons, `HeroPortrait.astro` for portraits with an initial-avatar fallback when `src/assets/heroes/{id}.jpg` is missing).
 
 ## Conventions
 

@@ -1,62 +1,93 @@
 ---
-// src/pages/residents/join-action.astro
 export const prerender = false;
 import { actions } from "astro:actions";
-import "../../styles/global.css";
+import { heroes, residents } from "../../data/heroes";
+import Layout from "../../layouts/Layout.astro";
+import Icon from "../../components/Icon.astro";
 
 const result = Astro.getActionResult(actions.join);
+
+// Page re-renders after every POST, so `residents` reflects current in-memory state.
+// On Netlify, module scope is shared within a single function invocation; the hint
+// is best-effort across separate cold starts (demo only, no persistent DB).
+const nextAccepted = heroes.find((h) => !residents.some((r) => r.id === h.id));
+const firstSettled = residents[0];
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Astro Action (Pattern C) — Avengers Retirement Home</title>
-  </head>
-  <body class="min-h-screen bg-zinc-950 text-zinc-100">
-    <main class="max-w-2xl mx-auto px-6 py-16 space-y-8">
-      <a href="/residents" class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors">&larr; Back</a>
+<Layout title="C — Astro Action — Heroes Retirement Home">
+  <main class="mx-auto max-w-2xl space-y-8 px-6 py-12">
+    <a
+      href="/residents"
+      class="inline-flex items-center gap-1.5 text-sm text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+    >
+      <Icon name="arrow-left" class="h-4 w-4" /> Back
+    </a>
 
-      <section class="space-y-2">
-        <h1 class="text-2xl font-semibold">Astro Action (Pattern C)</h1>
-        <p class="text-zinc-400 text-sm">
-          The form's <code class="text-zinc-300">action</code> attribute points at the
-          <code class="text-zinc-300">join</code> action. Astro handles transport,
-          Zod validates the input, and the page reads the result via
-          <code class="text-zinc-300">Astro.getActionResult()</code>. Zero JS.
-        </p>
-      </section>
-
-      <form method="POST" action={actions.join} class="flex gap-3">
-        <label class="sr-only" for="email">Hero email address</label>
-        <input
-          id="email"
-          type="email"
-          name="email"
-          required
-          placeholder="hero@example.com"
-          class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500"
-        />
-        <button
-          type="submit"
-          class="bg-zinc-100 text-zinc-950 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-white transition-colors cursor-pointer"
-        >
-          Apply
-        </button>
-      </form>
-
-      {result && !result.error && (
-        <p class="text-sm text-emerald-400">{result.data.message}</p>
-      )}
-      {result?.error && (
-        <p class="text-sm text-red-400">{result.error.message}</p>
-      )}
-
-      <p class="text-zinc-500 text-xs">
-        Try <code class="text-zinc-300">steve@rogers.com</code> (accepted),
-        <code class="text-zinc-300">tony@stark.com</code> (already a resident),
-        or <code class="text-zinc-300">peter@parker.com</code> (rejected).
+    <section class="space-y-2">
+      <h1 class="text-2xl font-semibold">C — Astro Action</h1>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400">
+        The form's
+        <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">action</code>
+        attribute points at the
+        <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">join</code>
+        action. Astro handles transport, Zod validates the input, and the page reads the result via
+        <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+          Astro.getActionResult()
+        </code>. Zero JS.
       </p>
-    </main>
-  </body>
-</html>
+    </section>
+
+    <form method="POST" action={actions.join} class="flex gap-3">
+      <label class="sr-only" for="email">Hero email address</label>
+      <input
+        id="email"
+        type="email"
+        name="email"
+        required
+        placeholder="hero@example.com"
+        class="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-500 dark:focus:ring-zinc-300"
+      />
+      <button
+        type="submit"
+        class="cursor-pointer rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+      >
+        Apply
+      </button>
+    </form>
+
+    {result && !result.error && (
+      <div class="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
+        <Icon name="check-circle" class="h-5 w-5 flex-shrink-0" />
+        <span>{result.data.message}</span>
+      </div>
+    )}
+    {result?.error && (
+      <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <Icon name="alert-circle" class="h-5 w-5 flex-shrink-0" />
+        <span>{result.error.message}</span>
+      </div>
+    )}
+
+    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+      {nextAccepted ? (
+        <>
+          Try{" "}
+          <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+            {nextAccepted.email}
+          </code>
+          {" "}(will join),{" "}
+        </>
+      ) : (
+        <>Everyone has joined! Try{" "}</>
+      )}
+      <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+        {firstSettled?.email ?? "bob@super.com"}
+      </code>
+      {" "}(already a resident), or{" "}
+      <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+        villain@evil.com
+      </code>
+      {" "}(rejected).
+    </p>
+  </main>
+</Layout>
