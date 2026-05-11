@@ -65,9 +65,15 @@ const firstSettled = residents[0];
       {" "}(rejected).
     </p>
 
-    {/* Server-side data for client-side hint tracking */}
-    <script type="application/json" id="heroData" set:text={JSON.stringify(heroData)} />
-    <script type="application/json" id="residentData" set:text={JSON.stringify([...residentEmails])} />
+    {/* Server-side data for client-side hint tracking.
+        data-* attributes are HTML-encoded by Astro and decoded back by getAttribute(),
+        avoiding the set:text + raw-text script tag encoding mismatch. */}
+    <div
+      id="pageData"
+      data-heroes={JSON.stringify(heroData)}
+      data-residents={JSON.stringify([...residentEmails])}
+      hidden
+    ></div>
 
     <template id="iconCheck">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 flex-shrink-0" aria-hidden="true">
@@ -92,13 +98,12 @@ const firstSettled = residents[0];
       const iconCheck = document.getElementById("iconCheck") as HTMLTemplateElement;
       const iconAlert = document.getElementById("iconAlert") as HTMLTemplateElement;
 
-      const allHeroes = JSON.parse(
-        document.getElementById("heroData")!.textContent!
-      ) as HeroRef[];
+      const pageData = document.getElementById("pageData")!;
+      const allHeroes = JSON.parse(pageData.getAttribute("data-heroes")!) as HeroRef[];
 
       // Track who is settled in this session (server snapshot + new joins)
       const settled = new Set<string>(
-        JSON.parse(document.getElementById("residentData")!.textContent!) as string[]
+        JSON.parse(pageData.getAttribute("data-residents")!) as string[]
       );
 
       const STYLES = {
