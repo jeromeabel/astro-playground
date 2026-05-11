@@ -5,12 +5,9 @@ import Layout from "../../layouts/Layout.astro";
 import Icon from "../../components/Icon.astro";
 import HeroPortrait from "../../components/HeroPortrait.astro";
 import type { Hero } from "../../data/heroes";
+import { GET } from "../api/residents/index.ts";
 
-// Server-side fetch from inside the page frontmatter.
-// Equivalent direct-import alternative (no HTTP roundtrip):
-//   import { GET } from "../api/residents/index.ts";
-//   const response = await GET(Astro);
-const response = await fetch(`${Astro.url.origin}/api/residents/`);
+const response = await GET(Astro);
 const residents: Hero[] = await response.json();
 
 const images = import.meta.glob<{ default: ImageMetadata }>(
@@ -41,11 +38,15 @@ const portraits = Object.fromEntries(
     <section class="space-y-2">
       <h1 class="text-2xl font-semibold">GET — list residents</h1>
       <p class="text-sm text-zinc-600 dark:text-zinc-400">
-        This page calls
+        This page imports the
+        <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+          GET
+        </code>
+        handler from
         <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
           /api/residents/
         </code>
-        from its frontmatter and renders the JSON server-side.
+        and calls it directly — no HTTP round-trip.
       </p>
     </section>
 

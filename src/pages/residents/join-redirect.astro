@@ -1,7 +1,11 @@
 ---
 export const prerender = false;
+import { heroes, residents } from "../../data/heroes";
 import Layout from "../../layouts/Layout.astro";
 import Icon from "../../components/Icon.astro";
+
+const nextAccepted = heroes.find((h) => !residents.some((r) => r.id === h.id));
+const firstSettled = residents[0];
 ---
 
 <Layout title="A — POST + redirect — Heroes Retirement Home">
@@ -50,13 +54,25 @@ import Icon from "../../components/Icon.astro";
     </form>
 
     <p class="text-xs text-zinc-500 dark:text-zinc-400">
-      Try
-      <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">frank@super.com</code>
-      (accepted),
-      <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">bob@super.com</code>
-      (already a resident), or
-      <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">villain@evil.com</code>
-      (rejected).
+      {nextAccepted ? (
+        <>
+          Try{" "}
+          <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+            {nextAccepted.email}
+          </code>
+          {" "}(accepted),{" "}
+        </>
+      ) : (
+        <>Everyone has joined! Try{" "}</>
+      )}
+      <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+        {firstSettled?.email ?? "bob@super.com"}
+      </code>
+      {" "}(already a resident), or{" "}
+      <code class="rounded bg-zinc-100 px-1 py-0.5 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+        villain@evil.com
+      </code>
+      {" "}(rejected).
     </p>
   </main>
 </Layout>
