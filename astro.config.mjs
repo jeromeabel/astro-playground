@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   adapter: netlify(),
+  image: {
+    responsiveStyles: true,
+  },
   vite: {
     plugins: [tailwindcss()],
   },

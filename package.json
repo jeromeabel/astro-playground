@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build",
+    "gen:images": "node scripts/gen-images.mjs",
+    "build": "pnpm gen:images && astro check && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -16,5 +17,8 @@
     "astro": "^6.4.8",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.2"
   }
 }
