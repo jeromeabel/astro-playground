@@ -1,0 +1,41 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const strategies = [
+  { id: "naive", title: "Naive", blurb: "Plain <img>, full-size, no srcset/sizes/dimensions. The measurement floor." },
+  { id: "manual", title: "Manual", blurb: "Hand-cut widths + srcset/sizes + baked blur over public/ files. The bash era, done right." },
+  { id: "auto", title: "Auto", blurb: "<Picture> generates formats, srcset, sizes, and width/height. Toil deleted." },
+  { id: "pixel-perfect", title: "Pixel-perfect", blurb: "sizes computed from layout tokens so the served file lands on the slot." },
+  { id: "lqip", title: "LQIP", blurb: "Auto plus a getImage() blurred placeholder and a cache-guarded fade-in." },
+];
+---
+
+<Layout title="Images — Astro Playground" description="Five image-optimization strategies, measured.">
+  <main class="mx-auto max-w-3xl space-y-10 px-6 py-16">
+    <section class="space-y-2">
+      <h1 class="text-2xl font-semibold">Image optimization strategies</h1>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400">
+        One route per technique, from unoptimized to fully optimized. Each renders
+        the same 20-image dataset as a responsive grid; each grid item links to a
+        large detail view (the LCP element). Run the Lighthouse harness against
+        <code>pnpm preview</code> to compare LCP, CLS, and bytes.
+      </p>
+    </section>
+
+    <nav>
+      <ul class="space-y-3">
+        {strategies.map((s) => (
+          <li>
+            <a
+              href={`/images/${s.id}`}
+              class="block rounded-lg border border-zinc-200 px-5 py-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+            >
+              <span class="font-medium">{s.title}</span>
+              <span class="ml-2 text-sm text-zinc-600 dark:text-zinc-400">{s.blurb}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </main>
+</Layout>

@@ -1,0 +1,43 @@
+---
+import type { ImageMetadata } from "astro";
+import Layout from "../../../layouts/Layout.astro";
+import DemoImage from "../../../components/DemoImage.astro";
+import { gallery } from "../../../data/gallery";
+
+type Strategy = "naive" | "manual" | "auto" | "pixel-perfect" | "lqip";
+
+export function getStaticPaths() {
+  const strategies = ["naive", "manual", "auto", "pixel-perfect", "lqip"] as const;
+  return strategies.map((strategy) => ({ params: { strategy } }));
+}
+
+const strategy = Astro.params.strategy as Strategy;
+
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/assets/demo/*.jpg",
+  { eager: true },
+);
+const imgOf = (id: string) => images[`/src/assets/demo/${id}.jpg`]?.default;
+---
+
+<Layout title={`Images / ${strategy} — Astro Playground`} description={`The ${strategy} strategy across the 20-image dataset.`}>
+  <main class="mx-auto max-w-3xl space-y-8 px-6 py-16">
+    <header class="space-y-2">
+      <a href="/images" class="text-sm text-zinc-600 hover:underline dark:text-zinc-400">&larr; All strategies</a>
+      <h1 class="text-2xl font-semibold capitalize">{strategy}</h1>
+    </header>
+
+    <ul class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {gallery.map((item) => (
+        <li class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <a href={`/images/${strategy}/${item.id}`} class="block">
+            <DemoImage item={item} strategy={strategy} type="thumb" image={imgOf(item.id)} />
+          </a>
+        </li>
+      ))}
+    </ul>
+  </main>
+  <script>
+    import "../../../scripts/reveal-img.ts";
+  </script>
+</Layout>
