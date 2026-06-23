@@ -36,8 +36,8 @@ Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme
   Both the generator and the routes read it, so the dataset never drifts.
 - **Generator:** `scripts/gen-images.mjs` (`pnpm gen:images`, runs before `build`)
   uses `sharp` to produce sources in `src/assets/demo/` and hand-cut widths + blur
-  in `public/manual/`. Picsum sources are committed; generated sources and all
-  `public/manual/` files are git-ignored and reproduced on demand.
+  in `public/manual/`. All 20 sources are committed; `public/manual/` files are
+  git-ignored and reproduced on demand.
 - **Rendering:** `src/components/DemoImage.astro` switches on `strategy`. `sizes`
   strings come from `src/lib/sizes.ts`; the LQIP fade is `src/scripts/reveal-img.ts`.
 - **Config:** `astro.config.mjs` sets `image.responsiveStyles: true` (required for
