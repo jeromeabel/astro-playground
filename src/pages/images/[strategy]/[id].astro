@@ -34,8 +34,12 @@ const image = imgOf(item.id);
   </main>
   <script>
     import "../../../scripts/reveal-img.ts";
-    // Opt-in served-size overlay (see grid route); chunk loads only with ?debug.
-    if (new URLSearchParams(location.search).has("debug")) {
+    // Opt-in served-size overlay (see grid route): dev toggle + shared state, or
+    // prod ?debug-only.
+    const urlDebug = new URLSearchParams(location.search).has("debug");
+    if (import.meta.env.DEV) {
+      import("../../../scripts/img-audit.ts").then((m) => m.initDevAudit(urlDebug));
+    } else if (urlDebug) {
       import("../../../scripts/img-audit.ts").then((m) => m.runImgAudit());
     }
   </script>

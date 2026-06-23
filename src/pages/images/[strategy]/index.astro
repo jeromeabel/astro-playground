@@ -31,9 +31,13 @@ const strategy = Astro.params.strategy as Strategy;
   </main>
   <script>
     import "../../../scripts/reveal-img.ts";
-    // Opt-in served-size overlay. The audit chunk is code-split and only fetched
-    // when ?debug is present, so the bare Lighthouse URL pays nothing.
-    if (new URLSearchParams(location.search).has("debug")) {
+    // Opt-in served-size overlay. The audit chunk is code-split. In dev: toggle +
+    // sessionStorage-shared state (survives navigation). In prod: only ?debug runs
+    // it, so the bare Lighthouse URL fetches nothing and adds no DOM.
+    const urlDebug = new URLSearchParams(location.search).has("debug");
+    if (import.meta.env.DEV) {
+      import("../../../scripts/img-audit.ts").then((m) => m.initDevAudit(urlDebug));
+    } else if (urlDebug) {
       import("../../../scripts/img-audit.ts").then((m) => m.runImgAudit());
     }
   </script>
