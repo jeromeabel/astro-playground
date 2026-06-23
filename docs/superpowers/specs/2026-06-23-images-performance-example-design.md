@@ -177,9 +177,26 @@ the blog's Sharp-vs-Netlify point made concrete, not a separate route.
 
 ## Config
 
-`astro.config.mjs` — add `image: { responsiveStyles: true }` and a one-line comment
-pointing at the Tailwind 4 cascade-layer caveat (Astro's `:where([data-astro-image])`
-rules outrank Tailwind's layered utilities). README expands the note.
+*(Verified against Astro v6 docs, 2026-06-23.)*
+
+`astro.config.mjs` — add `image: { responsiveStyles: true }` (default is `false`;
+without it — or your own CSS — the `<Picture>` routes are not actually responsive).
+It only affects `layout` = `constrained | full-width | fixed`, so it touches
+`/auto`, `/pixel-perfect`, `/lqip` and leaves `naive`/`manual` alone.
+
+The Tailwind 4 caveat is the teaching point and is still current: Tailwind's
+utilities live in a cascade layer, so they always lose to Astro's unlayered
+`:where([data-astro-image])` responsive styles. The `/auto` note demonstrates a
+Tailwind `object-*` class being overridden, then shows the **correct fix**: override
+`object-fit`/`object-position` via the component's `fit`/`position` props (per docs),
+not a Tailwind class. Alternatively, leave `responsiveStyles` `false` and own the CSS.
+
+**Astro 6 emission detail (don't chase the v5 form):** in v6, responsive styles are
+emitted at build time as a hashed class plus `data-astro-fit`/`data-astro-pos`
+attributes (CSP-safe), replacing v5's inline `style="--fit; --pos"`. The
+`data-astro-image="<layout>"` attribute remains. The LQIP route must therefore reach
+the outer element via `pictureAttributes` and must not assume an inline `--fit` style
+exists.
 
 ## Docs
 
