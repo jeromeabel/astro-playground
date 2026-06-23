@@ -46,20 +46,24 @@ Sync the `/images` playground example with the blog post and the user's notes:
 
 - **Remove** `plasmaSvg`, `tint`, and the `source === "generated"` branch in
   `baseBuffer`. `baseBuffer` always fetches Picsum.
-- **`overlaySvg`** stays and is the only text path. It bakes, for **every art
-  item**, a hard-edged caption + the source pixel size (e.g.
-  `SHARP EDGES 01 · 2400×1600`) onto the source. White fill + black stroke,
-  bottom-left, with a thin rule — the existing style.
-- **Manual per-width labels:** when emitting each `public/manual/<id>-<w>.jpg`,
-  composite a small hard-edged `<w>w` badge (e.g. `640w`) into that specific
-  file *before* writing it. So the served `manual` file literally displays its
-  own width. Applies to all 20 items' manual files (cheap, build-time only).
+- **Label format is real pixel dimensions:** every baked label reads
+  `<W>×<H> px` for that exact file (e.g. `2400×1600 px` on the source,
+  `640×427 px` on the 640-wide manual file). Hard-edged white fill + black
+  stroke so resampling blur is visible; bottom-left with a thin rule.
+- **`overlaySvg(w, h, caption?)`** stays and is the only text path. For **art
+  items** it bakes the hard-edged caption + `<W>×<H> px` onto the source. The
+  caption is the resize-blur subject; the dimensions identify the file.
+- **Manual per-file labels:** when emitting each `public/manual/<id>-<w>.jpg`,
+  composite that file's real `<W>×<H> px` (its actual resized dimensions, not
+  the `w` descriptor) into the file *before* writing it. So the served `manual`
+  file literally displays its own size — true "which image loaded." All 20
+  items' manual files (cheap, build-time only).
 - Honest limit (documented, not worked around): the `<Picture>` strategies
   (`auto`, `pixel-perfect`, `lqip`, `cropped`) generate width variants from a
-  single source — Astro owns that output, so per-variant width text cannot be
-  baked. They show the baked *source* text scaled (still demonstrates resize
-  blur), not the exact served width. Only `manual` (files we cut ourselves)
-  carries a true per-served-width label.
+  single source — Astro owns that output, so per-variant dimension text cannot
+  be baked. They show the baked *source* label scaled (still demonstrates resize
+  blur), not the exact served size. Only `manual` (files we cut ourselves)
+  carries a true per-served-file label.
 
 ### 3. `.gitignore`
 
@@ -74,14 +78,35 @@ Sync the `/images` playground example with the blog post and the user's notes:
   noting it reproduces the procedural dataset deterministically (fixed seed →
   byte-identical), so the script *is* the backup; no binaries committed.
 
-### 5. Cache / measurement docs
+### 5. Measurement & benchmark — scripts, cache caveat, on-page display
 
-- `README.md` + `CLAUDE.md` measurement section gains a **cache caveat**:
-  - Lighthouse runs cold by default — its LCP/bytes are first-visit numbers.
-  - A manual browser reload is warm (disk/memory cache), which is why "the next
-    load is faster"; warm reloads are not a fair strategy comparison.
-  - `pnpm benchmark:images` (existing harness) is the cold, repeatable measure;
-    to feel warm behavior, reload in the browser with DevTools Network open.
+**Scripts (existing, documented):**
+- `scripts/lighthouse.mjs` — runs Lighthouse 13 three times against one
+  strategy's list route via `pnpm preview`.
+- `scripts/measure.mjs` — reads `scripts/lh/*.json`, takes the per-metric
+  median, prints the LCP / CLS / bytes table.
+- `scripts/benchmark.mjs` (`pnpm benchmark:images`) — orchestrates all
+  strategies then prints the table.
+
+**Cache caveat (docs in `README.md` + `CLAUDE.md`):**
+- Lighthouse runs cold by default — its LCP/bytes are first-visit numbers.
+- A manual browser reload is warm (disk/memory cache), which is why "the next
+  load is faster"; warm reloads are not a fair strategy comparison.
+- `pnpm benchmark:images` is the cold, repeatable measure; to feel warm
+  behavior, reload in the browser with DevTools Network open.
+
+**On-page display (new):**
+- `measure.mjs` gains a `writeResults()` that also emits the medians to a
+  committed `src/data/benchmark.json` (`{ generatedAt, runs, rows: [{ strategy,
+  lcpMs, cls, bytes }] }`). `benchmark:images` calls it after printing.
+- The `/images` hub (`src/pages/images/index.astro`) imports that JSON and
+  renders a **results table** below the strategy list: one row per strategy,
+  columns LCP (ms) / CLS / bytes (KB), best value per column emphasized. A
+  short caption states the numbers are cold-cache Lighthouse medians and names
+  the command to refresh them.
+- Graceful empty state: if `benchmark.json` is absent or has no rows, the hub
+  shows a "no measurements yet — run `pnpm benchmark:images`" note instead of a
+  table. Commit a valid empty-shape `benchmark.json` so the build never breaks.
 
 ### 6. Blog sync (`jeromeabel.github.io`, separate repo)
 
@@ -111,5 +136,9 @@ Sync the `/images` playground example with the blog post and the user's notes:
 - `pnpm exec astro build` → succeeds; all routes prerender.
 - `curl` smoke tests: every `gallery.json` entry is `source: "picsum"`; a
   `manual` file visibly differs per width (size check + spot visual).
-- User verifies baked text + the resize-blur effect visually at
-  `http://localhost:4321/images/manual` and `/images/pixel-perfect`.
+- `node scripts/measure.mjs` writes a valid `src/data/benchmark.json`; the hub
+  renders the results table when rows exist and the empty-state note when they
+  don't (build succeeds in both cases).
+- User verifies baked `W×H px` text + the resize-blur effect visually at
+  `http://localhost:4321/images/manual` and `/images/pixel-perfect`, and the
+  benchmark table on `http://localhost:4321/images`.
