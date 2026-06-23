@@ -22,7 +22,7 @@ example: a hub page links into the demo, shared components do the work.
 ## Non-goals
 
 - No python benchmark harness (the vue-playground rig is overkill here).
-- No real photography or comic assets — all images are generated.
+- No sourced/licensed assets beyond seeded Picsum photos — the rest is generated.
 - No persistence, no backend. Static + adapter only.
 - Not a redesign of the playground shell; reuse `Layout.astro` and Tailwind 4.
 
@@ -44,32 +44,48 @@ example: a hub page links into the demo, shared components do the work.
 
 ## Dataset
 
-`scripts/gen-images.mjs` — Node script using `sharp` (already present transitively
-via `astro:assets`; added explicitly to `devDependencies`). Deterministic: every
-pixel/color is a function of the image index, so **no `Math.random`** and the output
-is byte-stable across runs.
+`scripts/gen-images.mjs` — Node script using `sharp` (present transitively via
+`astro:assets`; added explicitly to `devDependencies`). 20 source images, ~2400px
+wide, deliberately heavy so `/images/naive` is genuinely fat and the measurement
+contrast is real.
 
-Twenty images, two kinds:
+**Two source pools (10 + 10):**
 
-- **10 photo-like** (`photo-01.jpg` … `photo-10.jpg`) — multi-stop gradient plus
-  index-seeded noise, ~2400px wide, deliberately heavy. Purpose: tolerate auto
-  resampling (the "photos are fine on auto `layout`" case) and make `/images/naive`
-  genuinely fat so the measurement contrast is real.
-- **10 line-art/text** (`art-01.png` … `art-10.png`) — SVG rasterized by sharp:
-  bold glyphs, thin strokes, hard edges. Purpose: the case where a wrong served
-  width visibly shimmers, justifying `/images/pixel-perfect`.
+- **Picsum (10)** — fetched once at gen time from seeded URLs
+  (`https://picsum.photos/seed/<id>/2400/1600`). Seed = deterministic same photo
+  every run. Real continuous-tone photos: the honest "photos tolerate auto
+  resampling" proof. Fetched into `src/assets/demo/` and committed (small, stable).
+- **Generated (10)** — fully offline via `sharp` rasterizing an SVG `feTurbulence`
+  plasma (`type="fractalNoise"`, fixed `seed="<i>"`) tinted by an index-derived
+  gradient. Continuous-tone, edge-free, **deterministic — no `Math.random`**.
+
+**Two kinds (10 + 10), independent of source pool:**
+
+- **`photo` (10)** — clean, no overlay. The "auto `layout` is fine" case.
+- **`art` (10)** — same bases with a composited **SVG text + thin-rule overlay**
+  (`sharp(base).composite([{ input: textSvgBuffer }])`): bold high-contrast glyphs
+  and a 2px line, vector-rasterized at full source res. When the browser resamples
+  to a slightly-off slot width these hard edges soften/shimmer — the failure
+  `/images/pixel-perfect` fixes. Fixed caption string per index, so deterministic.
+
+Spread sources across kinds so the split isn't confounded with the source:
+**5 picsum-clean, 5 picsum-text, 5 gen-clean, 5 gen-text.** Each item is named by
+kind+index (`photo-01.jpg` … `photo-10.jpg`, `art-01.jpg` … `art-10.jpg`).
 
 Outputs:
 
 - `src/assets/demo/` — the 20 source images, imported by the astro:assets routes.
-- `public/manual/` — for each photo, a handful of pre-cut widths
-  (`photo-01-640.jpg`, `-960`, `-1280`, `-1920`) plus one baked-blur 32px
-  (`photo-01-blur.jpg`). These are the framework-free artifacts the `manual` route
+- `public/manual/` — for each item, a handful of pre-cut widths
+  (`<id>-640.jpg`, `-960`, `-1280`, `-1920`) plus one baked-blur 32px
+  (`<id>-blur.jpg`). These are the framework-free artifacts the `manual` route
   references by URL — the honest "bash era" output.
 
 Wiring: `gen:images` runs before the build. `build` becomes
-`gen:images && astro check && astro build`. Generated dirs are git-ignored
-(reproducible on demand); the script is the source of truth.
+`gen:images && astro check && astro build`. The Picsum sources are committed
+(deterministic + small); the offline-generated images and `public/manual/` widths
+are git-ignored and reproduced on demand. The script is the source of truth.
+Gen-images is idempotent: it skips re-fetching Picsum files that already exist, so
+offline builds work once the photos are committed.
 
 ## Dataset manifest
 
@@ -77,13 +93,18 @@ Wiring: `gen:images` runs before the build. `build` becomes
 
 ```ts
 export interface GalleryItem {
-  id: string;          // "photo-01" | "art-01"
-  kind: "photo" | "art";
+  id: string;                          // "photo-01" | "art-01"
+  kind: "photo" | "art";               // art => text/rule overlay
+  source: "picsum" | "generated";      // drives gen-images.mjs
   alt: string;
-  caption: string;
+  caption: string;                     // also the overlay text for kind "art"
 }
-export const gallery: GalleryItem[];
+export const gallery: GalleryItem[];   // 20 entries, 5 per (kind × source) cell
 ```
+
+`gen-images.mjs` reads this same manifest, so the dataset and the routes never
+drift: the script's per-item branch is `(source → fetch|generate)` then
+`(kind === "art" → composite caption overlay)`.
 
 Routes derive their image list and `getStaticPaths` from this single array.
 
@@ -179,7 +200,7 @@ src/scripts/reveal-img.ts       # LQIP fade + cache guard
 src/pages/images/index.astro    # hub
 src/pages/images/[strategy]/index.astro   # list (grid)
 src/pages/images/[strategy]/[id].astro    # detail
-src/assets/demo/                # generated sources (gitignored)
+src/assets/demo/                # sources: picsum committed, generated gitignored
 public/manual/                  # generated manual width files (gitignored)
 ```
 
@@ -192,8 +213,13 @@ Touched: `astro.config.mjs`, `package.json` (scripts + `sharp` dev dep),
   `devDependencies` pins it for the generator. Low risk.
 - **Lighthouse noise** — 3-run median chosen over single-run; if still jumpy,
   bump to 5. Documented, not silently capped.
-- **Generated photos look synthetic** — accepted tradeoff (user chose all-generated).
-  Bytes/LCP story is unaffected; only visual realism suffers.
+- **Picsum network dependency at gen time** — half the set is fetched from
+  `picsum.photos`. Mitigated by committing those 10 jpgs (seeded, stable) so builds
+  after the first gen are offline. Upstream could change a seed's photo; committed
+  files pin it.
+- **Generated half looks synthetic** — accepted; feTurbulence is continuous-tone and
+  edge-free, so the resampling point still holds. Only visual realism suffers, and
+  the real Picsum half carries the "photos tolerate auto" proof.
 - **No ClientRouter in playground** — `reveal-img.ts` binds both `DOMContentLoaded`
   and `astro:page-load` so it works with or without View Transitions.
 ```
