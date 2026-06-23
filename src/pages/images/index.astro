@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import benchmarkData from "../../data/benchmark.json";
+import { STRATEGIES } from "../../lib/strategies";
 
 interface BenchmarkRow {
   strategy: string;
@@ -18,15 +19,7 @@ const benchmark = benchmarkData as unknown as BenchmarkData;
 const rows = benchmark.rows ?? [];
 const hasData = rows.length > 0;
 
-const strategies = [
-  { id: "naive", title: "Naive", blurb: "Plain <img>, full-size, no srcset/sizes/dimensions. The measurement floor." },
-  { id: "manual", title: "Manual", blurb: "Hand-cut widths + srcset/sizes + baked blur over public/ files. The bash era, done right." },
-  { id: "auto", title: "Auto", blurb: "<Picture> generates formats, srcset, sizes, and width/height. Toil deleted." },
-  { id: "pixel-perfect", title: "Pixel-perfect", blurb: "sizes computed from layout tokens so the served file lands on the slot." },
-  { id: "lqip", title: "LQIP", blurb: "Auto plus a getImage() blurred placeholder and a cache-guarded fade-in." },
-  { id: "cropped", title: "Cropped", blurb: "fit=cover with per-view aspect ratios: 4:3 thumb and 16:9 cover from one imported source — two distinct build outputs." },
-  { id: "final", title: "Final", blurb: "The production stack: LQIP placeholder + cache-guarded fade, over pixel-perfect token widths, with an optional per-image crop." },
-];
+const strategies = STRATEGIES;
 ---
 
 <Layout title="Images — Astro Playground" description="Seven image-optimization strategies, measured.">
@@ -37,7 +30,7 @@ const strategies = [
         One route per technique, from unoptimized to fully optimized. Each renders
         the same 20-image dataset as a responsive grid; each grid item links to a
         large detail view (the LCP element). Run the Lighthouse harness against
-        <code>pnpm preview</code> to compare LCP, CLS, and bytes.
+        <code>netlify serve</code> (port 8888) to compare LCP, CLS, and bytes.
       </p>
     </section>
 
@@ -83,7 +76,7 @@ const strategies = [
       ) : (
         <p class="text-sm text-zinc-600 dark:text-zinc-400">
           No measurements yet — run <code>pnpm benchmark:images</code> against
-          <code>pnpm preview</code> to populate this table.
+          <code>netlify serve</code> to populate this table.
         </p>
       )}
       <p class="text-xs text-zinc-500 dark:text-zinc-500">
