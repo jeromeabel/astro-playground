@@ -1,40 +1,40 @@
 {
-  "generatedAt": "2026-06-23T13:58:42.721Z",
+  "generatedAt": "2026-06-23T14:35:31.625Z",
   "rows": [
     {
       "strategy": "naive",
       "runs": 3,
-      "lcpMs": 4676,
-      "cls": 0.154,
+      "lcpMs": 5131,
+      "cls": 0.201,
       "bytes": 9494540
     },
     {
       "strategy": "manual",
       "runs": 3,
-      "lcpMs": 628,
+      "lcpMs": 1020,
       "cls": 0,
       "bytes": 719018
     },
     {
       "strategy": "auto",
       "runs": 3,
-      "lcpMs": 608,
+      "lcpMs": 1892,
       "cls": 0,
-      "bytes": 120077
+      "bytes": 485728
     },
     {
       "strategy": "pixel-perfect",
       "runs": 3,
-      "lcpMs": 602,
+      "lcpMs": 1959,
       "cls": 0,
-      "bytes": 122744
+      "bytes": 488395
     },
     {
       "strategy": "lqip",
       "runs": 3,
-      "lcpMs": 588,
+      "lcpMs": 685,
       "cls": 0,
-      "bytes": 140157
+      "bytes": 501610
     }
   ]
 }
