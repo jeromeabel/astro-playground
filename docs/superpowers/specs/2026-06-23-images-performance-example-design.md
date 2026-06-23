@@ -175,6 +175,18 @@ README documents running it twice: local `preview` (Sharp) vs the deployed Netli
 URL (Image CDN). Identical `/_astro/` files, different transform timing — which is
 the blog's Sharp-vs-Netlify point made concrete, not a separate route.
 
+## Versions
+
+*(Evaluated 2026-06-23.)* Pinned to **Astro `^6.4.8`** (bumped from 6.3.1 —
+in-major, no breaking changes). **Astro 7.0.0 is available but deliberately skipped
+for this example:** v7's breaking changes (Vite 8, stable experimental flags,
+stricter Rust compiler, markdown/whitespace defaults) leave the image API —
+`astro:assets`, `<Picture>`, `getImage`, `responsiveStyles`, `image.layout`, the
+`data-astro-fit`/`data-astro-image` emission — completely unchanged, so v7 buys this
+image-focused demo nothing. It would also force `@astrojs/netlify` to its v8 major
+(peer `astro: ^7`) on a fresh `.0`. Cost up, benefit zero. `@astrojs/netlify` stays
+on `^7.x` (astro-6 compatible). Revisit v7 only if the whole repo moves to latest.
+
 ## Config
 
 *(Verified against Astro v6 docs, 2026-06-23.)*
