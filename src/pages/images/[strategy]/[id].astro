@@ -35,7 +35,7 @@ const image = images[`/src/assets/demo/${item.id}.jpg`]?.default;
         <DemoImage item={item} strategy={strategy} type="cover" image={image} />
       </div>
       <figcaption class="text-sm text-zinc-600 dark:text-zinc-400">
-        {item.kind} · {item.source} · strategy: {strategy}
+        {item.kind} · strategy: {strategy} · Photo by <a href={item.authorUrl} target="_blank" rel="noopener noreferrer" class="underline hover:text-zinc-900 dark:hover:text-zinc-100">{item.author}</a> on Unsplash
       </figcaption>
     </figure>
   </main>
