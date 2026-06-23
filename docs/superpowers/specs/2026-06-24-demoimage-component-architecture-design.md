@@ -276,8 +276,15 @@ same LQIP fade). This refactor is structural only. Verified by visual check +
 - **#2 (required):** `strategies.ts` single source (above).
 - **#4 (optional):** `demo-images.ts` (`imgOf`) — both routes import it.
 - **#3 (`baseProps`):** obsolete — superseded by this architecture.
-- **#5 (config `image.layout`):** still a separate decision; out of scope here
-  unless explicitly chosen.
+- **#5 (config `image.layout`):** **Rejected.** Keep `layout="constrained"`
+  explicit on every `<Picture>`. Rationale: grid-aware sizing lives in
+  `lib/sizes.ts` (explicit `sizes` + `widths`), fully independent of `layout` —
+  `layout` only sets CSS (`max-width:100%`) and a fallback auto-`sizes` that is
+  grid-blind and deliberately overridden. A global default would (a) hide a
+  teaching signal (the `auto` block showing `layout="constrained"` is the lesson),
+  (b) affect only 5 of 7 strategies (naive/manual are raw `<img>`), and (c) force
+  future full-width demos to override an implicit default. Net: cosmetic DRY win
+  not worth the lost explicitness on a teaching page.
 
 ## Out of Scope
 
@@ -294,7 +301,16 @@ same LQIP fade). This refactor is structural only. Verified by visual check +
 | `vitest` + Astro/Vite config friction | Low | Plain TS modules, relative imports; add `vitest.config.ts` only if resolution needs it |
 | `astro check` can't run full build offline (gen:images needs picsum) | Low | Use `pnpm exec astro check` for types; full `pnpm build` when online |
 
-## Open Question
+## Open Questions
 
-- Review #5 (`image.layout` default) — adopt globally, or keep `layout`
-  explicit per block? Deferred; not blocking this work.
+None. Review #5 resolved above (keep `layout="constrained"` explicit).
+
+### Note: `layout` vs. grid-aware `sizes`
+
+`layout` does not adapt `sizes` to the 3-col / 2-col / 1-col grid — its
+auto-generated `sizes` is derived from the `width` prop + viewport and is
+grid-blind. The 3/2/1-column adaptation comes entirely from the explicit
+`sizes` + `widths` in `lib/sizes.ts` (e.g. `pixelPerfectGridSizes` →
+`(min-width:1024px) 229px, (min-width:768px) 352px, calc(100vw - 48px)`), which
+overrides layout's auto guess. `auto`/`lqip` use the coarser approximate
+`gridSizes`; the gap between approximate and exact is the lesson of the page.
