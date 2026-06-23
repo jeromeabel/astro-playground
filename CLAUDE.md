@@ -30,8 +30,11 @@ Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme
 
 ## Images example
 
-`/images` demonstrates five image-optimization strategies (`naive`, `manual`,
-`auto`, `pixel-perfect`, `lqip`) over a deterministic 20-image dataset.
+`/images` demonstrates seven image-optimization strategies (`naive`, `manual`,
+`auto`, `pixel-perfect`, `lqip`, `cropped`, `final`) over a deterministic 20-image
+dataset. `final` is the production stack — LQIP placeholder + cache-guarded fade,
+over pixel-perfect token widths. Natural 3:2 by default; per-image crop is opt-in
+and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thumb).
 
 - **Single source of truth:** `src/data/gallery.json` (typed by `src/data/gallery.ts`).
   Both the generator and the routes read it, so the dataset never drifts.
@@ -40,16 +43,20 @@ Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme
   in `public/manual/`. All 20 sources are committed; `public/manual/` files are
   git-ignored and reproduced on demand.
 - **Rendering:** `src/components/DemoImage.astro` switches on `strategy`. `sizes`
-  strings come from `src/lib/sizes.ts`; the LQIP fade is `src/scripts/reveal-img.ts`.
+  strings **and** the pixel-perfect/`final` `widths` come from `src/lib/sizes.ts`
+  (token-derived; an explicit `widths` prop is kept by Astro's `||=`, so the served
+  file lands on the slot at 1x and 2x with no resampling). The `border` token is `0`
+  here — wrappers are borderless so the slot is a clean 720; a bordered card would
+  set it. The LQIP/`final` fade is `src/scripts/reveal-img.ts`.
 - **Config:** `astro.config.mjs` sets `image.responsiveStyles: true` (required for
   the `<Picture>` routes to be responsive). Tailwind 4 utilities live in a cascade
   layer and lose to Astro's unlayered responsive styles, so override `object-fit`/
   `object-position` via the component's `fit`/`position` props, not Tailwind classes.
 - **Measurement:** `pnpm benchmark:images http://localhost:8888` runs Lighthouse 13
-  (3-run median) against `netlify serve`, prints LCP / CLS / bytes across the five
+  (3-run median) against `netlify serve`, prints LCP / CLS / bytes across the seven
   strategies, and writes `src/data/benchmark.json` (rendered as a table on the
   `/images` hub). Must use `netlify serve` (not `pnpm preview`) — `auto`, `pixel-perfect`,
-  and `lqip` emit `/.netlify/images?...` URLs that 404 on the plain preview server,
+  `lqip`, `cropped`, and `final` emit `/.netlify/images?...` URLs that 404 on the plain preview server,
   skewing results. Lighthouse is cold-cache; a warm reload is faster but not a fair comparison.
 - **Dataset is all free:** every `gallery.json` entry is `source: "picsum"`. `sharp`
   bakes a hard-edged label onto every source (resized `public/manual/` widths + blur

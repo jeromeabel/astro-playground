@@ -21,12 +21,23 @@ await mkdir(SRC_DIR, { recursive: true });
 await mkdir(MANUAL_DIR, { recursive: true });
 
 // Overlay style for `art` sources: pick which resampling-demo treatment to bake.
+// Per item via `overlay` in gallery.json; otherwise the env default applies to all.
 //   OVERLAY=a|b|c|combo pnpm gen:images   (default: combo)
-// Re-test a style on the same photos:
-//   rm src/assets/demo/art-*.jpg && OVERLAY=b pnpm gen:images
+// Re-test styles on the same photos:
+//   rm src/assets/demo/art-*.jpg && pnpm gen:images
+const OVERLAYS = ["a", "b", "c", "combo"];
 const OVERLAY = (process.env.OVERLAY || "combo").toLowerCase();
-if (!["a", "b", "c", "combo"].includes(OVERLAY)) {
-  throw new Error(`OVERLAY must be a|b|c|combo, got "${OVERLAY}"`);
+if (!OVERLAYS.includes(OVERLAY)) {
+  throw new Error(`OVERLAY must be ${OVERLAYS.join("|")}, got "${OVERLAY}"`);
+}
+
+// Resolve the overlay style for one art item (per-item field wins over env).
+function overlayFor(item) {
+  const style = (item.overlay || OVERLAY).toLowerCase();
+  if (!OVERLAYS.includes(style)) {
+    throw new Error(`${item.id}: overlay must be ${OVERLAYS.join("|")}, got "${style}"`);
+  }
+  return style;
 }
 
 const FONT = `ui-monospace, "DejaVu Sans Mono", "Courier New", monospace`;
@@ -97,10 +108,10 @@ function comboSvg(caption, w, h) {
 
 const ART_STYLES = { a: styleA, b: styleB, c: styleC, combo: comboSvg };
 
-// hard-edged art overlay (full-size canvas), selected by OVERLAY.
-function artOverlaySvg(caption, w, h) {
+// hard-edged art overlay (full-size canvas), selected per item.
+function artOverlaySvg(style, caption, w, h) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"
-    shape-rendering="crispEdges">${ART_STYLES[OVERLAY](caption, w, h)}</svg>`;
+    shape-rendering="crispEdges">${ART_STYLES[style](caption, w, h)}</svg>`;
 }
 
 async function picsumBuffer(item) {
@@ -112,19 +123,57 @@ async function picsumBuffer(item) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-async function buildItem(item) {
+// Offline fallback base: a deterministic continuous-tone image (gradient +
+// fixed-seed fractal noise, no hard edges) so overlays — and the resampling
+// demo — still work when picsum is unreachable. Same idea as the procedural
+// backup generator. No Math.random (seed is the item index).
+function tint(i) {
+  const hue = (i * 36) % 360;
+  return { from: `hsl(${hue} 60% 45%)`, to: `hsl(${(hue + 40) % 360} 60% 25%)` };
+}
+function plasmaSvg(i) {
+  const { from, to } = tint(i);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${SRC_W}" height="${SRC_H}">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${from}"/>
+        <stop offset="1" stop-color="${to}"/>
+      </linearGradient>
+      <filter id="n">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="${i}"/>
+        <feColorMatrix type="saturate" values="0"/>
+        <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+      </filter>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#g)"/>
+    <rect width="100%" height="100%" filter="url(#n)" opacity="0.55"/>
+  </svg>`;
+}
+
+// picsum when reachable; deterministic plasma when it isn't (offline-safe).
+async function baseBuffer(item, i) {
+  try {
+    return await picsumBuffer(item);
+  } catch (err) {
+    const why = err.cause?.code || err.message;
+    console.warn(`  ⚠ ${item.id}: picsum unavailable (${why}) — offline plasma base`);
+    return sharp(Buffer.from(plasmaSvg(i))).jpeg({ quality: 90 }).toBuffer();
+  }
+}
+
+async function buildItem(item, i) {
   const out = join(SRC_DIR, `${item.id}.jpg`);
 
-  // idempotent: a present source is reused (offline-safe after first fetch)
+  // idempotent: a present source is reused (offline-safe after first build)
   let base;
   if (existsSync(out)) {
     base = await readFile(out);
   } else {
     const svg =
       item.kind === "art"
-        ? artOverlaySvg(item.caption, SRC_W, SRC_H)
+        ? artOverlaySvg(overlayFor(item), item.caption, SRC_W, SRC_H)
         : overlaySvg(item.caption, SRC_W, SRC_H);
-    base = await sharp(await picsumBuffer(item))
+    base = await sharp(await baseBuffer(item, i))
       .resize(SRC_W, SRC_H)
       .composite([{ input: Buffer.from(svg) }])
       .jpeg({ quality: 90 })
@@ -146,9 +195,10 @@ async function buildItem(item) {
   }
 }
 
-for (const item of gallery) {
-  await buildItem(item);
-  console.log(`✓ ${item.id}`);
+for (let i = 0; i < gallery.length; i++) {
+  const item = gallery[i];
+  await buildItem(item, i);
+  console.log(`✓ ${item.id}${item.kind === "art" ? ` (overlay ${overlayFor(item)})` : ""}`);
 }
 console.log(
   `\nGenerated ${gallery.length} free sources -> src/assets/demo, labeled widths + blur -> public/manual`,
