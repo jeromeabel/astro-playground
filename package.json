@@ -18,9 +18,9 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.9",
-    "@astrojs/netlify": "^7.0.8",
+    "@astrojs/netlify": "^8.0.0",
     "@tailwindcss/vite": "^4.3.0",
-    "astro": "^6.4.8",
+    "astro": "^7.0.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3"
   },
