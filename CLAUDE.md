@@ -45,7 +45,13 @@ Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme
   layer and lose to Astro's unlayered responsive styles, so override `object-fit`/
   `object-position` via the component's `fit`/`position` props, not Tailwind classes.
 - **Measurement:** `pnpm benchmark:images` runs Lighthouse 13 (3-run median) against
-  `pnpm preview` and prints LCP / CLS / bytes across all five strategies.
+  `pnpm preview`, prints LCP / CLS / bytes across the five strategies, and writes
+  `src/data/benchmark.json` (rendered as a table on the `/images` hub). Lighthouse
+  is cold-cache; a warm browser reload is faster but not a fair comparison.
+- **Dataset is all free:** every `gallery.json` entry is `source: "picsum"`. `sharp`
+  bakes a hard-edged `W×H px` label onto `art` sources and into each `public/manual/`
+  width file (the served file shows its own size). The pre-2026-06-23 procedural
+  generator is kept at `scripts/backup/gen-images-generated.mjs`.
 - **Pinned to Astro 6.4.8** — do not upgrade to 7.x (see the design spec's Versions note).
 
 ## Conventions

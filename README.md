@@ -54,8 +54,18 @@ pnpm preview          # http://localhost:4321
 pnpm benchmark:images # 3-run median LCP / CLS / bytes across all five strategies
 ```
 
+`benchmark:images` orchestrates `scripts/lighthouse.mjs` (3 Lighthouse runs per
+strategy) and `scripts/measure.mjs` (per-metric median). It prints a table **and**
+writes `src/data/benchmark.json`, which the `/images` hub renders as a results
+table. Commit a refreshed `benchmark.json` to update the on-page numbers.
+
+**Cache caveat.** Lighthouse runs cold by default, so its LCP/bytes are
+first-visit numbers. A manual browser reload is *warm* (disk/memory cache) — which
+is why the next load feels faster — but a warm reload is not a fair comparison
+between strategies. Use `pnpm benchmark:images` for the cold, repeatable measure;
+to feel warm behavior, reload in the browser with DevTools → Network open.
+
 **Sharp vs. Netlify Image CDN.** Run the same benchmark twice — once against
-local `pnpm preview` (Sharp transforms images at build time) and once against the
-deployed Netlify URL (Image CDN transforms at request time). The `/_astro/` files
-are identical; only the transform timing differs. That is the blog's
-Sharp-vs-Netlify point made concrete — same routes, two hosts, no extra code.
+local `pnpm preview` (Sharp transforms at build time) and once against the
+deployed Netlify URL (Image CDN transforms per request). The `/_astro/` files are
+identical; only the transform timing differs.
