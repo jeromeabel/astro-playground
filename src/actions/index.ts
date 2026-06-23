@@ -1,12 +1,12 @@
 import { ActionError, defineAction } from "astro:actions";
-import { z } from "astro:schema";
+import { z } from "astro/zod";
 import { heroes, residents } from "../data/heroes";
 
 export const server = {
   join: defineAction({
     accept: "form",
     input: z.object({
-      email: z.string().email(),
+      email: z.email(),
     }),
     handler: ({ email }) => {
       const hero = heroes.find((h) => h.email === email);
