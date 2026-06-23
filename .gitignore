@@ -23,6 +23,9 @@ pnpm-debug.log*
 # Local Netlify folder
 .netlify
 
+# Lighthouse run output (keep the dir, ignore the JSON)
+scripts/lh/*.json
+
 # images example — generated artifacts (reproduced by `pnpm gen:images`)
 public/manual/
 src/assets/demo/photo-06.jpg

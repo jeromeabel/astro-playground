@@ -7,7 +7,13 @@
     "start": "astro dev",
     "gen:images": "node scripts/gen-images.mjs",
     "build": "pnpm gen:images && astro check && astro build",
-    "preview": "astro preview",
+    "preview": "serve dist -p 4321",
+    "lighthouse:naive": "node scripts/lighthouse.mjs naive",
+    "lighthouse:manual": "node scripts/lighthouse.mjs manual",
+    "lighthouse:auto": "node scripts/lighthouse.mjs auto",
+    "lighthouse:pixel-perfect": "node scripts/lighthouse.mjs pixel-perfect",
+    "lighthouse:lqip": "node scripts/lighthouse.mjs lqip",
+    "benchmark:images": "node scripts/benchmark.mjs",
     "astro": "astro"
   },
   "dependencies": {
@@ -19,6 +25,7 @@
     "typescript": "^6.0.3"
   },
   "devDependencies": {
+    "serve": "^14.2.6",
     "sharp": "^0.35.2"
   }
 }
