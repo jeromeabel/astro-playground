@@ -1,11 +1,11 @@
 import { runLighthouse } from "./lighthouse.mjs";
 import { printTable, writeResults } from "./measure.mjs";
 
-// Assumes `pnpm preview` is already running at http://localhost:4321.
+const baseUrl = process.argv[2] ?? "http://localhost:4321";
 const STRATEGIES = ["naive", "manual", "auto", "pixel-perfect", "lqip"];
 
 for (const s of STRATEGIES) {
-  runLighthouse(s);
+  runLighthouse(s, baseUrl);
 }
 printTable();
 writeResults();

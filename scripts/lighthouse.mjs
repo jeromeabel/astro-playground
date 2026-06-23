@@ -7,9 +7,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(root, "scripts/lh");
 const RUNS = 3; // 3-run median tames single-run noise; bump to 5 if still jumpy
 
-export function runLighthouse(strategy) {
+export function runLighthouse(strategy, baseUrl = "http://localhost:4321") {
   mkdirSync(OUT_DIR, { recursive: true });
-  const url = `http://localhost:4321/images/${strategy}`;
+  const url = `${baseUrl}/images/${strategy}`;
   for (let run = 1; run <= RUNS; run++) {
     const out = join(OUT_DIR, `${strategy}-${run}.json`);
     console.log(`lighthouse ${strategy} run ${run}/${RUNS} -> ${url}`);
@@ -34,6 +34,6 @@ export function runLighthouse(strategy) {
   }
 }
 
-// allow `node scripts/lighthouse.mjs <strategy>`
-const arg = process.argv[2];
-if (arg) runLighthouse(arg);
+// allow `node scripts/lighthouse.mjs <strategy> [baseUrl]`
+const isMain = fileURLToPath(import.meta.url) === process.argv[1];
+if (isMain && process.argv[2]) runLighthouse(process.argv[2], process.argv[3]);

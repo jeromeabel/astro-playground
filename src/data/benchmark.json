@@ -1,4 +1,40 @@
 {
-  "generatedAt": null,
-  "rows": []
+  "generatedAt": "2026-06-23T13:58:42.721Z",
+  "rows": [
+    {
+      "strategy": "naive",
+      "runs": 3,
+      "lcpMs": 4676,
+      "cls": 0.154,
+      "bytes": 9494540
+    },
+    {
+      "strategy": "manual",
+      "runs": 3,
+      "lcpMs": 628,
+      "cls": 0,
+      "bytes": 719018
+    },
+    {
+      "strategy": "auto",
+      "runs": 3,
+      "lcpMs": 608,
+      "cls": 0,
+      "bytes": 120077
+    },
+    {
+      "strategy": "pixel-perfect",
+      "runs": 3,
+      "lcpMs": 602,
+      "cls": 0,
+      "bytes": 122744
+    },
+    {
+      "strategy": "lqip",
+      "runs": 3,
+      "lcpMs": 588,
+      "cls": 0,
+      "bytes": 140157
+    }
+  ]
 }

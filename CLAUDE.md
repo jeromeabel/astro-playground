@@ -6,20 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `pnpm dev` — start dev server (http://localhost:4321)
 - `pnpm build` — type-check (`astro check`) then build
-- `pnpm preview` — preview production build
+- `pnpm preview` — preview production build (no image CDN — use `netlify serve` for accurate benchmarks)
+- `netlify serve` — serve production build with Netlify CDN emulation (port 8888); required for `/.netlify/images` to resolve
 
 ## Architecture
 
-Astro 6 playground — a collection of standalone examples, each exploring a different Astro feature. The home page (`src/pages/index.astro`) is a minimal hub linking to each example.
+Astro 7 playground — a collection of standalone examples, each exploring a different Astro feature. The home page (`src/pages/index.astro`) is a minimal hub linking to each example.
 
-Astro 6 with Tailwind CSS 4 (via Vite plugin, not Astro integration) and strict TypeScript.
+Astro 7 with Tailwind CSS 4 (via Vite plugin, not Astro integration) and strict TypeScript.
 
 **Rendering mode:** hybrid — pages are static by default; API routes, actions, and any page using `Astro.getActionResult()` must opt out with `export const prerender = false`.
 
 **Two patterns for server logic:**
 
 1. **API Routes** (`src/pages/api/`) — standard REST endpoints exporting `GET`/`POST`/etc. as `APIRoute` functions that return `new Response(...)`. The subscribers routes serve data from a local in-memory heroes array.
-2. **Astro Actions** (`src/actions/index.ts`) — form-based mutations using `defineAction` with Zod validation via `astro:schema`. Consumed in pages via `actions` import from `astro:actions` and `Astro.getActionResult()`.
+2. **Astro Actions** (`src/actions/index.ts`) — form-based mutations using `defineAction` with Zod validation via `astro/zod` (Zod v4; use `z.email()` not `z.string().email()`). Consumed in pages via `actions` import from `astro:actions` and `Astro.getActionResult()`.
 
 ### Residents example (`/residents`)
 
@@ -44,15 +45,17 @@ Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme
   the `<Picture>` routes to be responsive). Tailwind 4 utilities live in a cascade
   layer and lose to Astro's unlayered responsive styles, so override `object-fit`/
   `object-position` via the component's `fit`/`position` props, not Tailwind classes.
-- **Measurement:** `pnpm benchmark:images` runs Lighthouse 13 (3-run median) against
-  `pnpm preview`, prints LCP / CLS / bytes across the five strategies, and writes
-  `src/data/benchmark.json` (rendered as a table on the `/images` hub). Lighthouse
-  is cold-cache; a warm browser reload is faster but not a fair comparison.
+- **Measurement:** `pnpm benchmark:images http://localhost:8888` runs Lighthouse 13
+  (3-run median) against `netlify serve`, prints LCP / CLS / bytes across the five
+  strategies, and writes `src/data/benchmark.json` (rendered as a table on the
+  `/images` hub). Must use `netlify serve` (not `pnpm preview`) — `auto`, `pixel-perfect`,
+  and `lqip` emit `/.netlify/images?...` URLs that 404 on the plain preview server,
+  skewing results. Lighthouse is cold-cache; a warm reload is faster but not a fair comparison.
 - **Dataset is all free:** every `gallery.json` entry is `source: "picsum"`. `sharp`
   bakes a hard-edged `W×H px` label onto `art` sources and into each `public/manual/`
   width file (the served file shows its own size). The pre-2026-06-23 procedural
   generator is kept at `scripts/backup/gen-images-generated.mjs`.
-- **Pinned to Astro 6.4.8** — do not upgrade to 7.x (see the design spec's Versions note).
+- **Running Astro 7.0.0** (`^7.0.0` in package.json).
 
 ## Conventions
 
