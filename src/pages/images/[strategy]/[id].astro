@@ -24,7 +24,7 @@ const image = imgOf(item.id);
     </header>
 
     <figure class="space-y-2">
-      <div class="overflow-hidden rounded-lg">
+      <div class="overflow-hidden rounded-lg" data-img-card>
         <DemoImage item={item} strategy={strategy} type="cover" image={image} />
       </div>
       <figcaption class="text-sm text-zinc-600 dark:text-zinc-400">
@@ -34,5 +34,9 @@ const image = imgOf(item.id);
   </main>
   <script>
     import "../../../scripts/reveal-img.ts";
+    // Opt-in served-size overlay (see grid route); chunk loads only with ?debug.
+    if (new URLSearchParams(location.search).has("debug")) {
+      import("../../../scripts/img-audit.ts").then((m) => m.runImgAudit());
+    }
   </script>
 </Layout>

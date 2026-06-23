@@ -21,7 +21,7 @@ const strategy = Astro.params.strategy as Strategy;
 
     <ul class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {gallery.map((item) => (
-        <li class="overflow-hidden rounded-lg">
+        <li class="overflow-hidden rounded-lg" data-img-card>
           <a href={`/images/${strategy}/${item.id}`} class="block">
             <DemoImage item={item} strategy={strategy} type="thumb" image={imgOf(item.id)} />
           </a>
@@ -31,5 +31,10 @@ const strategy = Astro.params.strategy as Strategy;
   </main>
   <script>
     import "../../../scripts/reveal-img.ts";
+    // Opt-in served-size overlay. The audit chunk is code-split and only fetched
+    // when ?debug is present, so the bare Lighthouse URL pays nothing.
+    if (new URLSearchParams(location.search).has("debug")) {
+      import("../../../scripts/img-audit.ts").then((m) => m.runImgAudit());
+    }
   </script>
 </Layout>
