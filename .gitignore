@@ -28,16 +28,6 @@ scripts/lh/*.json
 
 # images example — generated artifacts (reproduced by `pnpm gen:images`)
 public/manual/
-src/assets/demo/photo-06.jpg
-src/assets/demo/photo-07.jpg
-src/assets/demo/photo-08.jpg
-src/assets/demo/photo-09.jpg
-src/assets/demo/photo-10.jpg
-src/assets/demo/art-06.jpg
-src/assets/demo/art-07.jpg
-src/assets/demo/art-08.jpg
-src/assets/demo/art-09.jpg
-src/assets/demo/art-10.jpg
 
 # MCP and superpowers artifacts
 .playwright-mcp/
