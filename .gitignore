@@ -38,3 +38,7 @@ src/assets/demo/art-07.jpg
 src/assets/demo/art-08.jpg
 src/assets/demo/art-09.jpg
 src/assets/demo/art-10.jpg
+
+# MCP and superpowers artifacts
+.playwright-mcp/
+.superpowers/

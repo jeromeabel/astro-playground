@@ -111,7 +111,9 @@ if (strategy === "lqip" && image) {
 
 {
   strategy === "lqip" && image && (
-    /* auto + getImage placeholder + opacity:0 fade (reveal-img.ts), cache-guarded */
+    /* auto + getImage placeholder + opacity:0 fade (reveal-img.ts), cache-guarded.
+       v6 responsiveStyles:true emits data-astro-image + hashed class (not inline style)
+       — explicit fade and LQIP background-image don't conflict with Astro's cascade */
     <Picture
       src={image}
       formats={["avif", "webp"]}
