@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -53,6 +53,26 @@ export function printTable() {
     );
   }
   console.log("");
+}
+
+const DATA_FILE = join(root, "src/data/benchmark.json");
+
+// Emit the medians to a committed JSON the /images hub renders as a table.
+export function writeResults() {
+  const rows = STRATEGIES.map((s) => {
+    const m = metricsFor(s);
+    if (!m) return null;
+    return {
+      strategy: s,
+      runs: m.runs,
+      lcpMs: Math.round(m.lcp),
+      cls: Number(m.cls.toFixed(3)),
+      bytes: Math.round(m.bytes),
+    };
+  }).filter(Boolean);
+  const out = { generatedAt: new Date().toISOString(), rows };
+  writeFileSync(DATA_FILE, JSON.stringify(out, null, 2) + "\n");
+  console.log(`wrote ${rows.length} rows -> src/data/benchmark.json`);
 }
 
 // allow `node scripts/measure.mjs`
