@@ -27,6 +27,27 @@ Demonstrates API routes + Astro Actions with a generic "Heroes Retirement Home" 
 
 Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme-color) and a light-by-default body with `dark:` variants that follow `prefers-color-scheme`. Reusable bits live in `src/components/` (`Icon.astro` for inline SVG icons, `HeroPortrait.astro` for portraits with an initial-avatar fallback when `src/assets/heroes/{id}.jpg` is missing).
 
+## Images example
+
+`/images` demonstrates five image-optimization strategies (`naive`, `manual`,
+`auto`, `pixel-perfect`, `lqip`) over a deterministic 20-image dataset.
+
+- **Single source of truth:** `src/data/gallery.json` (typed by `src/data/gallery.ts`).
+  Both the generator and the routes read it, so the dataset never drifts.
+- **Generator:** `scripts/gen-images.mjs` (`pnpm gen:images`, runs before `build`)
+  uses `sharp` to produce sources in `src/assets/demo/` and hand-cut widths + blur
+  in `public/manual/`. Picsum sources are committed; generated sources and all
+  `public/manual/` files are git-ignored and reproduced on demand.
+- **Rendering:** `src/components/DemoImage.astro` switches on `strategy`. `sizes`
+  strings come from `src/lib/sizes.ts`; the LQIP fade is `src/scripts/reveal-img.ts`.
+- **Config:** `astro.config.mjs` sets `image.responsiveStyles: true` (required for
+  the `<Picture>` routes to be responsive). Tailwind 4 utilities live in a cascade
+  layer and lose to Astro's unlayered responsive styles, so override `object-fit`/
+  `object-position` via the component's `fit`/`position` props, not Tailwind classes.
+- **Measurement:** `pnpm benchmark:images` runs Lighthouse 13 (3-run median) against
+  `pnpm preview` and prints LCP / CLS / bytes across all five strategies.
+- **Pinned to Astro 6.4.8** — do not upgrade to 7.x (see the design spec's Versions note).
+
 ## Conventions
 
 - Tailwind 4: imported via `@import "tailwindcss"` in `src/styles/global.css`, configured as a Vite plugin in `astro.config.mjs` (not `@astrojs/tailwind`).
