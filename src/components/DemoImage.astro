@@ -6,7 +6,7 @@ import { gridSizes, pixelPerfectGridSizes, detailSizes } from "../lib/sizes";
 
 interface Props {
   item: GalleryItem;
-  strategy: "naive" | "manual" | "auto" | "pixel-perfect" | "lqip";
+  strategy: "naive" | "manual" | "auto" | "pixel-perfect" | "lqip" | "cropped";
   type: "thumb" | "cover";
   image?: ImageMetadata; // required for every strategy except "manual"
 }
@@ -82,6 +82,25 @@ if (strategy === "lqip" && image) {
       layout="constrained"
       width={width}
       sizes={ppSizes}
+      loading={loading}
+      fetchpriority={fetchpriority}
+      alt={item.alt}
+      class="block w-full"
+    />
+  )
+}
+
+{
+  strategy === "cropped" && image && (
+    /* one source, two build-time crops: 4:3 thumb vs 16:9 cover, both fit=cover */
+    <Picture
+      src={image}
+      formats={["avif", "webp"]}
+      layout="constrained"
+      width={isCover ? 1280 : 640}
+      height={isCover ? 720 : 480}
+      fit="cover"
+      sizes={autoSizes}
       loading={loading}
       fetchpriority={fetchpriority}
       alt={item.alt}

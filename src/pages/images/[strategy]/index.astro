@@ -4,10 +4,10 @@ import Layout from "../../../layouts/Layout.astro";
 import DemoImage from "../../../components/DemoImage.astro";
 import { gallery } from "../../../data/gallery";
 
-type Strategy = "naive" | "manual" | "auto" | "pixel-perfect" | "lqip";
+type Strategy = "naive" | "manual" | "auto" | "pixel-perfect" | "lqip" | "cropped";
 
 export function getStaticPaths() {
-  const strategies = ["naive", "manual", "auto", "pixel-perfect", "lqip"] as const;
+  const strategies = ["naive", "manual", "auto", "pixel-perfect", "lqip", "cropped"] as const;
   return strategies.map((strategy) => ({ params: { strategy } }));
 }
 
