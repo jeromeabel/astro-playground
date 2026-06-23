@@ -15,7 +15,7 @@ import {
 
 interface Props {
   item: GalleryItem;
-  strategy: "naive" | "manual" | "auto" | "pixel-perfect" | "lqip" | "cropped";
+  strategy: "naive" | "manual" | "auto" | "pixel-perfect" | "lqip" | "cropped" | "final";
   type: "thumb" | "cover";
   image?: ImageMetadata; // required for every strategy except "manual"
 }
@@ -35,10 +35,24 @@ const ppSizes = isCover ? pixelPerfectCoverSizes : pixelPerfectGridSizes;
 const ppWidths = isCover ? pixelPerfectCoverWidths : pixelPerfectGridWidths;
 const ppWidth = isCover ? pixelPerfectCoverWidth : pixelPerfectGridWidth;
 
-// LQIP: build a 32px blurred placeholder at build time
+// "final" = LQIP + fade + pixel-perfect widths. Crop is opt-in per gallery item
+// (default off → natural 3:2); when set, wide 16:9 cover / square-ish 4:3 thumb.
+const finalCrop = strategy === "final" && item.crop === true;
+const [cropW, cropH] = isCover ? [16, 9] : [4, 3];
+const finalHeight = finalCrop ? Math.round((ppWidth * cropH) / cropW) : undefined;
+
+// LQIP/final: build a tiny blurred placeholder at build time, matching the
+// displayed aspect so it doesn't distort behind the real image.
 let placeholder: string | undefined;
-if (strategy === "lqip" && image) {
-  const lq = await getImage({ src: image, width: 32, height: 21, format: "webp" });
+if ((strategy === "lqip" || strategy === "final") && image) {
+  const [aw, ah] = finalCrop ? [cropW, cropH] : [3, 2];
+  const lq = await getImage({
+    src: image,
+    width: 32,
+    height: Math.round((32 * ah) / aw),
+    format: "webp",
+    ...(finalCrop ? { fit: "cover" } : {}),
+  });
   placeholder = lq.src;
 }
 ---
@@ -142,6 +156,39 @@ if (strategy === "lqip" && image) {
         layout="constrained"
         width={width}
         sizes={autoSizes}
+        loading={loading}
+        fetchpriority={fetchpriority}
+        alt={item.alt}
+        class="block w-full"
+        pictureAttributes={{ style: "opacity:0" }}
+      />
+    </div>
+  )
+}
+
+{
+  strategy === "final" && image && (
+    /* the production strategy: LQIP placeholder + cache-guarded fade, over a
+       pixel-perfect <Picture> (token widths land the file on the slot, no
+       resampling). Natural 3:2 by default; optional per-context crop (16:9 cover
+       / 4:3 thumb) when item.crop is set. */
+    <div class="reveal-img relative overflow-hidden">
+      <img
+        class="absolute inset-0 -z-10 h-full w-full object-cover blur-2xl"
+        aria-hidden="true"
+        src={placeholder}
+        alt=""
+      />
+      <Picture
+        src={image}
+        formats={["avif", "webp"]}
+        layout="constrained"
+        width={ppWidth}
+        widths={ppWidths}
+        height={finalHeight}
+        fit={finalCrop ? "cover" : undefined}
+        position={finalCrop ? "top" : undefined}
+        sizes={ppSizes}
         loading={loading}
         fetchpriority={fetchpriority}
         alt={item.alt}

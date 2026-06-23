@@ -4,10 +4,10 @@ import Layout from "../../../layouts/Layout.astro";
 import DemoImage from "../../../components/DemoImage.astro";
 import { gallery, type GalleryItem } from "../../../data/gallery";
 
-type Strategy = "naive" | "manual" | "auto" | "pixel-perfect" | "lqip" | "cropped";
+type Strategy = "naive" | "manual" | "auto" | "pixel-perfect" | "lqip" | "cropped" | "final";
 
 export function getStaticPaths() {
-  const strategies = ["naive", "manual", "auto", "pixel-perfect", "lqip", "cropped"] as const;
+  const strategies = ["naive", "manual", "auto", "pixel-perfect", "lqip", "cropped", "final"] as const;
   return strategies.flatMap((strategy) =>
     gallery.map((item) => ({ params: { strategy, id: item.id }, props: { item } })),
   );
@@ -31,7 +31,7 @@ const image = images[`/src/assets/demo/${item.id}.jpg`]?.default;
     </header>
 
     <figure class="space-y-2">
-      <div class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+      <div class="overflow-hidden rounded-lg">
         <DemoImage item={item} strategy={strategy} type="cover" image={image} />
       </div>
       <figcaption class="text-sm text-zinc-600 dark:text-zinc-400">

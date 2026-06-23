@@ -25,10 +25,11 @@ const strategies = [
   { id: "pixel-perfect", title: "Pixel-perfect", blurb: "sizes computed from layout tokens so the served file lands on the slot." },
   { id: "lqip", title: "LQIP", blurb: "Auto plus a getImage() blurred placeholder and a cache-guarded fade-in." },
   { id: "cropped", title: "Cropped", blurb: "fit=cover with per-view aspect ratios: 4:3 thumb and 16:9 cover from one imported source — two distinct build outputs." },
+  { id: "final", title: "Final", blurb: "The production stack: LQIP placeholder + cache-guarded fade, over pixel-perfect token widths, with an optional per-image crop." },
 ];
 ---
 
-<Layout title="Images — Astro Playground" description="Six image-optimization strategies, measured.">
+<Layout title="Images — Astro Playground" description="Seven image-optimization strategies, measured.">
   <main class="mx-auto max-w-3xl space-y-10 px-6 py-16">
     <section class="space-y-2">
       <h1 class="text-2xl font-semibold">Image optimization strategies</h1>

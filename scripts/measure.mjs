@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(root, "scripts/lh");
 
-const STRATEGIES = ["naive", "manual", "auto", "pixel-perfect", "lqip"];
+const STRATEGIES = ["naive", "manual", "auto", "pixel-perfect", "lqip", "cropped", "final"];
 
 function median(nums) {
   const s = [...nums].sort((a, b) => a - b);

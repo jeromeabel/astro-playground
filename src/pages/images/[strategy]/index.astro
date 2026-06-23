@@ -4,10 +4,10 @@ import Layout from "../../../layouts/Layout.astro";
 import DemoImage from "../../../components/DemoImage.astro";
 import { gallery } from "../../../data/gallery";
 
-type Strategy = "naive" | "manual" | "auto" | "pixel-perfect" | "lqip" | "cropped";
+type Strategy = "naive" | "manual" | "auto" | "pixel-perfect" | "lqip" | "cropped" | "final";
 
 export function getStaticPaths() {
-  const strategies = ["naive", "manual", "auto", "pixel-perfect", "lqip", "cropped"] as const;
+  const strategies = ["naive", "manual", "auto", "pixel-perfect", "lqip", "cropped", "final"] as const;
   return strategies.map((strategy) => ({ params: { strategy } }));
 }
 
@@ -29,7 +29,7 @@ const imgOf = (id: string) => images[`/src/assets/demo/${id}.jpg`]?.default;
 
     <ul class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {gallery.map((item) => (
-        <li class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+        <li class="overflow-hidden rounded-lg">
           <a href={`/images/${strategy}/${item.id}`} class="block">
             <DemoImage item={item} strategy={strategy} type="thumb" image={imgOf(item.id)} />
           </a>
