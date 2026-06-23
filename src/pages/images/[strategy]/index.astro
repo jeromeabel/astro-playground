@@ -1,22 +1,31 @@
 ---
-import Layout from "../../../layouts/Layout.astro";
-import DemoImage from "../../../components/DemoImage.astro";
-import { gallery } from "../../../data/gallery";
-import { STRATEGY_IDS, type Strategy } from "../../../lib/strategies";
-import { imgOf } from "../../../lib/demo-images";
+import Layout from "@layouts/Layout.astro";
+import Breadcrumb from "@components/Breadcrumb.astro";
+import DemoImage from "@images/components/DemoImage.astro";
+import { gallery } from "@images/data/gallery";
+import { STRATEGIES, STRATEGY_IDS, type Strategy } from "@images/lib/strategies";
+import { imgOf } from "@images/lib/demo-images";
 
 export function getStaticPaths() {
   return STRATEGY_IDS.map((strategy) => ({ params: { strategy } }));
 }
 
 const strategy = Astro.params.strategy as Strategy;
+const meta = STRATEGIES.find((s) => s.id === strategy);
 ---
 
 <Layout title={`Images / ${strategy} — Astro Playground`} description={`The ${strategy} strategy across the 20-image dataset.`}>
-  <main class="mx-auto max-w-3xl space-y-8 px-6 py-16">
-    <header class="space-y-2">
-      <a href="/images" class="text-sm text-zinc-600 hover:underline dark:text-zinc-400">&larr; All strategies</a>
+  <main class="mx-auto max-w-5xl space-y-8 px-6 py-16">
+    <header class="space-y-3">
+      <Breadcrumb
+        items={[
+          { label: "Playground", href: "/" },
+          { label: "Images", href: "/images" },
+          { label: meta?.title ?? strategy },
+        ]}
+      />
       <h1 class="text-2xl font-semibold capitalize">{strategy}</h1>
+      {meta && <p class="max-w-3xl text-sm text-zinc-600 dark:text-zinc-400">{meta.blurb}</p>}
     </header>
 
     <ul class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -30,15 +39,15 @@ const strategy = Astro.params.strategy as Strategy;
     </ul>
   </main>
   <script>
-    import "../../../scripts/reveal-img.ts";
+    import "@images/scripts/reveal-img.ts";
     // Opt-in served-size overlay. The audit chunk is code-split. In dev: toggle +
     // sessionStorage-shared state (survives navigation). In prod: only ?debug runs
     // it, so the bare Lighthouse URL fetches nothing and adds no DOM.
     const urlDebug = new URLSearchParams(location.search).has("debug");
     if (import.meta.env.DEV) {
-      import("../../../scripts/img-audit.ts").then((m) => m.initDevAudit(urlDebug));
+      import("@images/scripts/img-audit.ts").then((m) => m.initDevAudit(urlDebug));
     } else if (urlDebug) {
-      import("../../../scripts/img-audit.ts").then((m) => m.runImgAudit());
+      import("@images/scripts/img-audit.ts").then((m) => m.runImgAudit());
     }
   </script>
 </Layout>

@@ -26,7 +26,7 @@ Astro 7 with Tailwind CSS 4 (via Vite plugin, not Astro integration) and strict 
 
 Demonstrates API routes + Astro Actions with a generic "Heroes Retirement Home" theme. The hero roster lives in `src/data/heroes.ts` (not persisted — in-memory only). Three POST patterns are shown side by side: A (redirect), B (JSON), C (Astro Action). The `join` action only accepts emails from the pre-defined retired heroes list; any other email throws an `ActionError` with a rejection message. On success, a personalized welcome is shown for that request. Nothing is saved across cold starts; it's a demo.
 
-Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme-color) and a light-by-default body with `dark:` variants that follow `prefers-color-scheme`. Reusable bits live in `src/components/` (`Icon.astro` for inline SVG icons, `HeroPortrait.astro` for portraits with an initial-avatar fallback when `src/assets/heroes/{id}.jpg` is missing).
+Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme-color) and a light-by-default body with `dark:` variants that follow `prefers-color-scheme`. Reusable bits live in `src/components/` (`Icon.astro` for inline SVG icons, `HeroPortrait.astro` for portraits with an initial-avatar fallback when `src/assets/heroes/{id}.jpg` is missing, `Breadcrumb.astro` for a generic breadcrumb trail). Feature-specific code is collocated under `src/features/<feature>/` — see the Images example.
 
 ## Images example
 
@@ -36,25 +36,34 @@ dataset. `final` is the production stack — LQIP placeholder + cache-guarded fa
 over pixel-perfect token widths. Natural 3:2 by default; per-image crop is opt-in
 and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thumb).
 
-- **Single source of truth:** `src/data/gallery.json` (typed by `src/data/gallery.ts`).
-  Both the generator and the routes read it, so the dataset never drifts.
+- **Feature folder:** all images-only code is collocated under
+  `src/features/images/` — `components/DemoImage.astro`, `lib/{sizes,strategies,demo-images}.ts`,
+  `scripts/{img-audit,reveal-img}.ts`, and `data/{gallery.json,gallery.ts,benchmark.json}`.
+  Only the routes live in `src/pages/images/` (Astro requires it); the image
+  *sources* stay in `src/assets/demo/` (absolute glob + generator depend on it).
+  Imports use TS path aliases from `tsconfig.json`: `@images/*` → `src/features/images/*`,
+  `@components/*`, `@layouts/*`, `@/*` → `src/*`.
+- **Single source of truth:** `src/features/images/data/gallery.json` (typed by
+  `gallery.ts` beside it). Both the generator and the routes read it, so the
+  dataset never drifts.
 - **Generator:** `scripts/gen-images.mjs` (`pnpm gen:images`, runs before `build`)
   uses `sharp` to produce sources in `src/assets/demo/` and hand-cut widths + blur
   in `public/manual/`. All 20 sources are committed; `public/manual/` files are
   git-ignored and reproduced on demand.
-- **Rendering:** `src/components/DemoImage.astro` switches on `strategy`. `sizes`
-  strings **and** the pixel-perfect/`final` `widths` come from `src/lib/sizes.ts`
+- **Rendering:** `src/features/images/components/DemoImage.astro` switches on
+  `strategy`. `sizes` strings **and** the pixel-perfect/`final` `widths` come from
+  `src/features/images/lib/sizes.ts`
   (token-derived; an explicit `widths` prop is kept by Astro's `||=`, so the served
   file lands on the slot at 1x and 2x with no resampling). The `border` token is `0`
   here — wrappers are borderless so the slot is a clean 720; a bordered card would
-  set it. The LQIP/`final` fade is `src/scripts/reveal-img.ts`.
+  set it. The LQIP/`final` fade is `src/features/images/scripts/reveal-img.ts`.
 - **Config:** `astro.config.mjs` sets `image.responsiveStyles: true` (required for
   the `<Picture>` routes to be responsive). Tailwind 4 utilities live in a cascade
   layer and lose to Astro's unlayered responsive styles, so override `object-fit`/
   `object-position` via the component's `fit`/`position` props, not Tailwind classes.
 - **Measurement:** `pnpm benchmark:images http://localhost:8888` runs Lighthouse 13
   (3-run median) against `netlify serve`, prints LCP / CLS / bytes across the seven
-  strategies, and writes `src/data/benchmark.json` (rendered as a table on the
+  strategies, and writes `src/features/images/data/benchmark.json` (rendered as a table on the
   `/images` hub). Must use `netlify serve` (not `pnpm preview`) — `auto`, `pixel-perfect`,
   `lqip`, `cropped`, and `final` emit `/.netlify/images?...` URLs that 404 on the plain preview server,
   skewing results. Lighthouse is cold-cache; a warm reload is faster but not a fair comparison.

@@ -1,7 +1,8 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import benchmarkData from "../../data/benchmark.json";
-import { STRATEGIES } from "../../lib/strategies";
+import Layout from "@layouts/Layout.astro";
+import Breadcrumb from "@components/Breadcrumb.astro";
+import benchmarkData from "@images/data/benchmark.json";
+import { STRATEGIES } from "@images/lib/strategies";
 
 interface BenchmarkRow {
   strategy: string;
@@ -23,56 +24,45 @@ const strategies = STRATEGIES;
 ---
 
 <Layout title="Images — Astro Playground" description="Seven image-optimization strategies, measured.">
-  <main class="mx-auto max-w-3xl space-y-10 px-6 py-16">
-    <section class="space-y-2">
+  <main class="mx-auto max-w-5xl space-y-10 px-6 py-16">
+    <header class="space-y-3">
+      <Breadcrumb items={[{ label: "Playground", href: "/" }, { label: "Images" }]} />
       <h1 class="text-2xl font-semibold">Image optimization strategies</h1>
-      <p class="text-sm text-zinc-600 dark:text-zinc-400">
+      <p class="max-w-3xl text-sm text-zinc-600 dark:text-zinc-400">
         One route per technique, from unoptimized to fully optimized. Each renders
         the same 20-image dataset as a responsive grid; each grid item links to a
         large detail view (the LCP element). Run the Lighthouse harness against
         <code>netlify serve</code> (port 8888) to compare LCP, CLS, and bytes.
       </p>
-    </section>
-
-    <nav>
-      <ul class="space-y-3">
-        {strategies.map((s) => (
-          <li>
-            <a
-              href={`/images/${s.id}`}
-              class="block rounded-lg border border-zinc-200 px-5 py-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
-            >
-              <span class="font-medium">{s.title}</span>
-              <span class="ml-2 text-sm text-zinc-600 dark:text-zinc-400">{s.blurb}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    </header>
 
     <section class="space-y-3">
       <h2 class="text-lg font-semibold">Measured results</h2>
       {hasData ? (
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-zinc-200 text-left dark:border-zinc-800">
-              <th class="py-2 pr-4 font-medium">Strategy</th>
-              <th class="py-2 pr-4 font-medium">LCP (ms)</th>
-              <th class="py-2 pr-4 font-medium">CLS</th>
-              <th class="py-2 font-medium">Bytes (KB)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr class="border-b border-zinc-100 dark:border-zinc-900">
-                <td class="py-2 pr-4 font-mono">{r.strategy}</td>
-                <td class="py-2 pr-4 tabular-nums">{r.lcpMs}</td>
-                <td class="py-2 pr-4 tabular-nums">{r.cls.toFixed(3)}</td>
-                <td class="py-2 tabular-nums">{Math.round(r.bytes / 1024)}</td>
+        <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-zinc-200 text-left dark:border-zinc-800">
+                <th class="px-4 py-2 font-medium">Strategy</th>
+                <th class="px-4 py-2 font-medium">LCP (ms)</th>
+                <th class="px-4 py-2 font-medium">CLS</th>
+                <th class="px-4 py-2 font-medium">Bytes (KB)</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr class="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/50">
+                  <td class="px-4 py-2">
+                    <a href={`/images/${r.strategy}`} class="font-mono hover:underline">{r.strategy}</a>
+                  </td>
+                  <td class="px-4 py-2 tabular-nums">{r.lcpMs}</td>
+                  <td class="px-4 py-2 tabular-nums">{r.cls.toFixed(3)}</td>
+                  <td class="px-4 py-2 tabular-nums">{Math.round(r.bytes / 1024)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <p class="text-sm text-zinc-600 dark:text-zinc-400">
           No measurements yet — run <code>pnpm benchmark:images</code> against
@@ -83,6 +73,26 @@ const strategies = STRATEGIES;
         Cold-cache Lighthouse 13 medians (3 runs each). A warm browser reload is
         faster and is not a fair strategy comparison — see the README.
       </p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold">Strategies</h2>
+      <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {strategies.map((s) => (
+          <li>
+            <a
+              href={`/images/${s.id}`}
+              class="flex h-full flex-col gap-1.5 rounded-lg border border-zinc-200 p-5 transition-colors hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
+            >
+              <span class="flex items-center justify-between gap-2">
+                <span class="font-medium">{s.title}</span>
+                <code class="text-xs text-zinc-400 dark:text-zinc-600">{s.id}</code>
+              </span>
+              <span class="text-sm text-zinc-600 dark:text-zinc-400">{s.blurb}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </section>
   </main>
 </Layout>

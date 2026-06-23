@@ -1,9 +1,10 @@
 ---
-import Layout from "../../../layouts/Layout.astro";
-import DemoImage from "../../../components/DemoImage.astro";
-import { gallery, type GalleryItem } from "../../../data/gallery";
-import { STRATEGY_IDS, type Strategy } from "../../../lib/strategies";
-import { imgOf } from "../../../lib/demo-images";
+import Layout from "@layouts/Layout.astro";
+import Breadcrumb from "@components/Breadcrumb.astro";
+import DemoImage from "@images/components/DemoImage.astro";
+import { gallery, type GalleryItem } from "@images/data/gallery";
+import { STRATEGIES, STRATEGY_IDS, type Strategy } from "@images/lib/strategies";
+import { imgOf } from "@images/lib/demo-images";
 
 export function getStaticPaths() {
   return STRATEGY_IDS.flatMap((strategy) =>
@@ -14,12 +15,20 @@ export function getStaticPaths() {
 const strategy = Astro.params.strategy as Strategy;
 const { item } = Astro.props as { item: GalleryItem };
 const image = imgOf(item.id);
+const meta = STRATEGIES.find((s) => s.id === strategy);
 ---
 
 <Layout title={`${item.caption} / ${strategy} — Astro Playground`} description={item.alt}>
-  <main class="mx-auto max-w-3xl space-y-6 px-6 py-16">
-    <header class="space-y-2">
-      <a href={`/images/${strategy}`} class="text-sm text-zinc-600 hover:underline dark:text-zinc-400">&larr; {strategy} grid</a>
+  <main class="mx-auto max-w-5xl space-y-6 px-6 py-16">
+    <header class="space-y-3">
+      <Breadcrumb
+        items={[
+          { label: "Playground", href: "/" },
+          { label: "Images", href: "/images" },
+          { label: meta?.title ?? strategy, href: `/images/${strategy}` },
+          { label: item.caption },
+        ]}
+      />
       <h1 class="text-2xl font-semibold">{item.caption}</h1>
     </header>
 
@@ -33,14 +42,14 @@ const image = imgOf(item.id);
     </figure>
   </main>
   <script>
-    import "../../../scripts/reveal-img.ts";
+    import "@images/scripts/reveal-img.ts";
     // Opt-in served-size overlay (see grid route): dev toggle + shared state, or
     // prod ?debug-only.
     const urlDebug = new URLSearchParams(location.search).has("debug");
     if (import.meta.env.DEV) {
-      import("../../../scripts/img-audit.ts").then((m) => m.initDevAudit(urlDebug));
+      import("@images/scripts/img-audit.ts").then((m) => m.initDevAudit(urlDebug));
     } else if (urlDebug) {
-      import("../../../scripts/img-audit.ts").then((m) => m.runImgAudit());
+      import("@images/scripts/img-audit.ts").then((m) => m.runImgAudit());
     }
   </script>
 </Layout>
