@@ -111,23 +111,29 @@ if (strategy === "lqip" && image) {
 
 {
   strategy === "lqip" && image && (
-    /* auto + getImage placeholder + opacity:0 fade (reveal-img.ts), cache-guarded.
-       v6 responsiveStyles:true emits data-astro-image + hashed class (not inline style)
-       — explicit fade and LQIP background-image don't conflict with Astro's cascade */
-    <Picture
-      src={image}
-      formats={["avif", "webp"]}
-      layout="constrained"
-      width={width}
-      sizes={autoSizes}
-      loading={loading}
-      fetchpriority={fetchpriority}
-      alt={item.alt}
-      class="reveal-img block w-full"
-      style="opacity:0;transition:opacity .4s ease"
-      pictureAttributes={{
-        style: `background-image:url(${placeholder});background-size:cover`,
-      }}
-    />
+    /* separate 32px blurred <img> behind a real <Picture> that starts invisible
+       and fades in on load (reveal-img.ts, cache-guarded). The placeholder is its
+       own positioned box, so it paints the full slot on the first frame — LCP fires
+       on it instead of the streaming file. */
+    <div class="reveal-img relative overflow-hidden">
+      <img
+        class="absolute inset-0 -z-10 h-full w-full object-cover blur-2xl"
+        aria-hidden="true"
+        src={placeholder}
+        alt=""
+      />
+      <Picture
+        src={image}
+        formats={["avif", "webp"]}
+        layout="constrained"
+        width={width}
+        sizes={autoSizes}
+        loading={loading}
+        fetchpriority={fetchpriority}
+        alt={item.alt}
+        class="block w-full"
+        pictureAttributes={{ style: "opacity:0" }}
+      />
+    </div>
   )
 }
