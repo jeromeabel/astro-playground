@@ -52,9 +52,15 @@ Shared shell: `src/layouts/Layout.astro` provides the HTML head (favicons, theme
   and `lqip` emit `/.netlify/images?...` URLs that 404 on the plain preview server,
   skewing results. Lighthouse is cold-cache; a warm reload is faster but not a fair comparison.
 - **Dataset is all free:** every `gallery.json` entry is `source: "picsum"`. `sharp`
-  bakes a hard-edged `W×H px` label onto `art` sources and into each `public/manual/`
-  width file (the served file shows its own size). The pre-2026-06-23 procedural
-  generator is kept at `scripts/backup/gen-images-generated.mjs`.
+  bakes a hard-edged label onto every source (resized `public/manual/` widths + blur
+  inherit it, scaling down with the image). `photo` sources get a large bold **title**
+  that survives downscaling. `art` sources get a resampling-demo overlay whose fine,
+  hard-edged detail goes blurry/moiré at non-exact widths — the motivation for the
+  pixel-perfect strategy. Pick the treatment with `OVERLAY=a|b|c|combo pnpm gen:images`
+  (default `combo`): **a** = small-text caption panel + 1px hairlines, **b** = fine
+  vertical grating (moiré), **c** = title size ladder (8→84px). Re-test a style on the
+  same photos with `rm src/assets/demo/art-*.jpg && OVERLAY=b pnpm gen:images`.
+  The pre-2026-06-23 procedural generator is kept at `scripts/backup/gen-images-generated.mjs`.
 - **Running Astro 7.0.0** (`^7.0.0` in package.json).
 
 ## Conventions
