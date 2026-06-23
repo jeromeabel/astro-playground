@@ -1,0 +1,112 @@
+---
+import { Picture, getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import type { GalleryItem } from "../data/gallery";
+import { gridSizes, pixelPerfectGridSizes, detailSizes } from "../lib/sizes";
+
+interface Props {
+  item: GalleryItem;
+  strategy: "naive" | "manual" | "auto" | "pixel-perfect" | "lqip";
+  type: "thumb" | "cover";
+  image?: ImageMetadata; // required for every strategy except "manual"
+}
+
+const { item, strategy, type, image } = Astro.props;
+
+const isCover = type === "cover";
+const loading = isCover ? "eager" : "lazy";
+const fetchpriority = isCover ? "high" : "auto";
+const width = isCover ? 1280 : 640;
+const height = isCover ? 853 : 427; // 3:2
+
+// auto + lqip use the approximate default; pixel-perfect uses the token-derived string
+const autoSizes = isCover ? detailSizes : gridSizes;
+const ppSizes = isCover ? detailSizes : pixelPerfectGridSizes;
+
+// LQIP: build a 32px blurred placeholder at build time
+let placeholder: string | undefined;
+if (strategy === "lqip" && image) {
+  const lq = await getImage({ src: image, width: 32, height: 21, format: "webp" });
+  placeholder = lq.src;
+}
+---
+
+{
+  strategy === "naive" && image && (
+    /* floor: no srcset, no sizes, no width/height -> worst bytes + CLS */
+    <img src={image.src} alt={item.alt} class="block w-full" />
+  )
+}
+
+{
+  strategy === "manual" && (
+    /* bash era done right: hand-cut widths + baked blur, manual width/height */
+    <img
+      src={`/manual/${item.id}-1280.jpg`}
+      srcset={`/manual/${item.id}-640.jpg 640w, /manual/${item.id}-960.jpg 960w, /manual/${item.id}-1280.jpg 1280w, /manual/${item.id}-1920.jpg 1920w`}
+      sizes={autoSizes}
+      width={width}
+      height={height}
+      loading={loading}
+      fetchpriority={fetchpriority}
+      alt={item.alt}
+      class="block w-full bg-cover"
+      style={`background-image:url(/manual/${item.id}-blur.jpg)`}
+    />
+  )
+}
+
+{
+  strategy === "auto" && image && (
+    /* toil deletion: formats + srcset + sizes + auto width/height (CLS fixed) */
+    <Picture
+      src={image}
+      formats={["avif", "webp"]}
+      layout="constrained"
+      width={width}
+      sizes={autoSizes}
+      loading={loading}
+      fetchpriority={fetchpriority}
+      alt={item.alt}
+      class="block w-full"
+    />
+  )
+}
+
+{
+  strategy === "pixel-perfect" && image && (
+    /* sizes from layout tokens -> served file lands on the slot, no resampling */
+    <Picture
+      src={image}
+      formats={["avif", "webp"]}
+      layout="constrained"
+      width={width}
+      sizes={ppSizes}
+      loading={loading}
+      fetchpriority={fetchpriority}
+      alt={item.alt}
+      class="block w-full"
+    />
+  )
+}
+
+{
+  strategy === "lqip" && image && (
+    /* auto + getImage placeholder + opacity:0 fade (reveal-img.ts), cache-guarded */
+    <Picture
+      src={image}
+      formats={["avif", "webp"]}
+      layout="constrained"
+      width={width}
+      sizes={autoSizes}
+      loading={loading}
+      fetchpriority={fetchpriority}
+      alt={item.alt}
+      class="reveal-img block w-full"
+      style="opacity:0;transition:opacity .4s ease"
+      pictureAttributes={{
+        style: `background-image:url(${placeholder});background-size:cover`,
+      }}
+    />
+  )
+}
