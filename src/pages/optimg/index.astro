@@ -20,6 +20,10 @@ const benchmark = benchmarkData as unknown as BenchmarkData;
 const rows = benchmark.rows ?? [];
 const hasData = rows.length > 0;
 
+const minLcp = hasData ? Math.min(...rows.map((r) => r.lcpMs)) : null;
+const maxLcp = hasData ? Math.max(...rows.map((r) => r.lcpMs)) : null;
+const minBytes = hasData ? Math.min(...rows.map((r) => r.bytes)) : null;
+
 const strategies = STRATEGIES;
 ---
 
@@ -50,16 +54,27 @@ const strategies = STRATEGIES;
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr class="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/50">
-                  <td class="px-4 py-2">
-                    <a href={`/optimg/${r.strategy}`} class="font-mono hover:underline">{r.strategy}</a>
-                  </td>
-                  <td class="px-4 py-2 tabular-nums">{r.lcpMs}</td>
-                  <td class="px-4 py-2 tabular-nums">{r.cls.toFixed(3)}</td>
-                  <td class="px-4 py-2 tabular-nums">{Math.round(r.bytes / 1024)}</td>
-                </tr>
-              ))}
+              {rows.map((r) => {
+                const isBestLcp = r.lcpMs === minLcp;
+                const isWorstLcp = r.lcpMs === maxLcp;
+                const isBestBytes = r.bytes === minBytes;
+                return (
+                  <tr class="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/50">
+                    <td class="px-4 py-2">
+                      <a href={`/optimg/${r.strategy}`} class="font-mono hover:underline">{r.strategy}</a>
+                    </td>
+                    <td class={`px-4 py-2 tabular-nums ${isBestLcp ? "font-semibold text-emerald-600 dark:text-emerald-400" : isWorstLcp ? "text-red-500 dark:text-red-400" : ""}`}>
+                      {r.lcpMs}
+                      {isBestLcp && <span class="ml-1 text-xs">↑</span>}
+                    </td>
+                    <td class="px-4 py-2 tabular-nums">{r.cls.toFixed(3)}</td>
+                    <td class={`px-4 py-2 tabular-nums ${isBestBytes ? "font-semibold text-emerald-600 dark:text-emerald-400" : ""}`}>
+                      {Math.round(r.bytes / 1024)}
+                      {isBestBytes && <span class="ml-1 text-xs">↑</span>}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -73,6 +88,39 @@ const strategies = STRATEGIES;
         Cold-cache Lighthouse 13 medians (3 runs each). A warm browser reload is
         faster and is not a fair strategy comparison — see the README.
       </p>
+
+      {hasData && (
+        <div class="space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+          <h3 class="text-sm font-semibold">Key findings</h3>
+          <ul class="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+            <li>
+              <span class="font-medium text-zinc-800 dark:text-zinc-200">Bytes wins go to pixel-perfect and final</span>
+              {" "}— {Math.round(rows.find(r => r.strategy === "pixel-perfect")!.bytes / 1024)} KB and {Math.round(rows.find(r => r.strategy === "final")!.bytes / 1024)} KB,
+              ~55% under <code>auto</code> ({Math.round(rows.find(r => r.strategy === "auto")!.bytes / 1024)} KB) and 97% under <code>naive</code>.
+              Exact <code>sizes</code> + <code>widths</code> derived from layout tokens means the CDN serves the slot file with no slack.
+            </li>
+            <li>
+              <span class="font-medium text-zinc-800 dark:text-zinc-200">LQIP does not improve LCP</span>
+              {" "}— its LCP ({rows.find(r => r.strategy === "lqip")!.lcpMs} ms) is
+              worse than <code>auto</code> ({rows.find(r => r.strategy === "auto")!.lcpMs} ms).
+              Lighthouse records LCP when the <em>full</em> image is visible — after the fade-in fires —
+              so the placeholder adds latency, not savings.
+              LQIP's payoff is <em>perceived</em> speed: the user sees content at ~200 ms even though the metric clock runs longer.
+            </li>
+            <li>
+              <span class="font-medium text-zinc-800 dark:text-zinc-200">manual wins LCP</span>
+              {" "}({rows.find(r => r.strategy === "manual")!.lcpMs} ms) — hand-cut files served directly from <code>public/</code>,
+              no CDN transform roundtrip on <code>/.netlify/images</code>.
+            </li>
+            <li>
+              <span class="font-medium text-zinc-800 dark:text-zinc-200">final is the production pick</span>
+              {" "}— matches pixel-perfect on bytes ({Math.round(rows.find(r => r.strategy === "final")!.bytes / 1024)} KB)
+              while LQIP delivers instant visual feedback. The {rows.find(r => r.strategy === "final")!.lcpMs - rows.find(r => r.strategy === "pixel-perfect")!.lcpMs} ms
+              LCP delta vs pixel-perfect is the cost of the fade.
+            </li>
+          </ul>
+        </div>
+      )}
     </section>
 
     <section class="space-y-3">
