@@ -57,6 +57,14 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   file lands on the slot at 1x and 2x with no resampling). The `border` token is `0`
   here — wrappers are borderless so the slot is a clean 720; a bordered card would
   set it. The LQIP/`final` fade is `src/features/optimg/scripts/reveal-img.ts`.
+- **Below-fold loading:** every non-naive strategy marks grid thumbs
+  `loading="lazy"` (cover slots stay `eager fetchpriority="high"`, above-fold);
+  `naive` emits a bare `<img>` with **no** `loading` attr → browser-default eager,
+  so all 20 thumbs fetch upfront. That eager-all is the intended worst case `naive`
+  teaches, not a bug. Guarded by a data-driven Container-API test over
+  `STRATEGY_IDS` in `__tests__/DemoImage.test.ts` (Task D). Runtime check: `pnpm dev`,
+  DevTools Network + throttle, scroll `/optimg/final` (thumbs fetch on scroll) vs
+  `/optimg/naive` (all 20 upfront).
 - **Config:** `astro.config.mjs` sets `image.responsiveStyles: true` (required for
   the `<Picture>` routes to be responsive). Tailwind 4 utilities live in a cascade
   layer and lose to Astro's unlayered responsive styles, so override `object-fit`/

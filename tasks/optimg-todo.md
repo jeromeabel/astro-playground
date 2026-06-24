@@ -35,11 +35,13 @@ dead code added).
 - [ ] L2 per-strategy render: loading attrs, srcset/sizes presence, naive bare img
 - [ ] CP-3: pnpm test green; break-a-constant smoke fails
 
-## Task D — below-fold verify (folds into B-L2)
-- [ ] Automated: Container-API assert thumb loading="lazy" non-naive, none for naive
+## Task D — below-fold verify (folds into B-L2) ✅
+- [x] Automated: data-driven Container-API assert over STRATEGY_IDS — all 6 non-naive
+  thumbs loading="lazy"; naive emits none (DemoImage.test.ts, 52 tests green)
 - [ ] Manual runtime: throttled Network, scroll final grid (lazy) vs naive (eager-all)
-- [ ] Document thumbs-lazy / naive-eager-by-design / cover-eager
-- [ ] CP-4
+  — **user-run** (Playwright-skip pref); recipe documented in CLAUDE.md
+- [x] Document thumbs-lazy / naive-eager-by-design / cover-eager (CLAUDE.md)
+- [x] CP-4: pnpm test green (52/52); guard fails if a thumb loses lazy
 
 ## Task E — blog gifs (vhs/ffmpeg)
 - [ ] gifs.tape: LQIP→final fade (Slow 3G throttle)

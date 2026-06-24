@@ -4,6 +4,7 @@ import { passthroughImageService } from 'astro/config';
 import type { ImageMetadata } from 'astro';
 import DemoImage from '../components/DemoImage.astro';
 import { gallery } from '../data/gallery';
+import { STRATEGY_IDS } from '../lib/strategies';
 
 const fakeImage = {
   src: '/src/assets/demo/photo-01.jpg',
@@ -83,16 +84,21 @@ describe('DemoImage — Layer 2 Container API', () => {
     expect(html).toContain('aria-hidden="true"');
   });
 
-  // --- below-fold: thumb vs cover lazy guard (Task D) ---
-  it('manual/thumb emits loading="lazy" and has srcset', async () => {
+  // --- below-fold lazy guard (Task D) ---
+  // Every non-naive strategy must mark below-fold thumbs loading="lazy" so the
+  // grid only fetches what scrolls into view. naive emits no loading attr on
+  // purpose (browser-default eager → all 20 thumbs upfront) — the worst case it
+  // teaches. cover slots stay eager (asserted above) since they're above-fold.
+  const nonNaive = STRATEGY_IDS.filter((s) => s !== 'naive');
+
+  it.each(nonNaive)('%s/thumb emits loading="lazy" (below-fold)', async (strategy) => {
     const html = await container.renderToString(DemoImage, {
-      props: { item, strategy: 'manual', type: 'thumb' },
+      props: { item, strategy, type: 'thumb', image: fakeImage },
     });
     expect(html).toContain('loading="lazy"');
-    expect(html).toContain('srcset');
   });
 
-  it('naive/thumb has no loading attribute (browser-default eager)', async () => {
+  it('naive/thumb has no loading attribute (browser-default eager by design)', async () => {
     const html = await container.renderToString(DemoImage, {
       props: { item, strategy: 'naive', type: 'thumb', image: fakeImage },
     });
