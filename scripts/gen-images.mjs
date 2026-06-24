@@ -14,7 +14,7 @@ const WIDTHS = [640, 960, 1280, 1920];
 const BLUR_W = 32;
 
 const gallery = JSON.parse(
-  await readFile(join(root, "src/features/images/data/gallery.json"), "utf8"),
+  await readFile(join(root, "src/features/optimg/data/gallery.json"), "utf8"),
 );
 
 await mkdir(SRC_DIR, { recursive: true });
