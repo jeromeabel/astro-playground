@@ -95,3 +95,8 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
 
 - Tailwind 4: imported via `@import "tailwindcss"` in `src/styles/global.css`, configured as a Vite plugin in `astro.config.mjs` (not `@astrojs/tailwind`).
 - Use `pnpm`, not `npm`.
+- **Specs:** planning artifacts live in `.specs/<date>-<initiative>/` (git-ignored,
+  local-only) — one folder per initiative holding `design.md` / `plan.md` / `todo.md`
+  (+ `research.md` / `review.md` when they exist). This unifies both spec workflows;
+  put new design/plan/todo docs here, **not** in `docs/superpowers/` or `tasks/`
+  (their tool defaults). `.superpowers/sdd/` stays the superpowers process scratch.
