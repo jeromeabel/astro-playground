@@ -41,6 +41,26 @@ const strategies = STRATEGIES;
     </header>
 
     <section class="space-y-3">
+      <h2 class="text-lg font-semibold">Strategies</h2>
+      <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {strategies.map((s) => (
+          <li>
+            <a
+              href={`/optimg/${s.id}`}
+              class="flex h-full flex-col gap-1.5 rounded-lg border border-zinc-200 p-5 transition-colors hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
+            >
+              <span class="flex items-center justify-between gap-2">
+                <span class="font-medium">{s.title}</span>
+                <code class="text-xs text-zinc-400 dark:text-zinc-600">{s.id}</code>
+              </span>
+              <span class="text-sm text-zinc-600 dark:text-zinc-400">{s.blurb}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="space-y-3">
       <h2 class="text-lg font-semibold">Measured results</h2>
       {hasData ? (
         <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -123,24 +143,6 @@ const strategies = STRATEGIES;
       )}
     </section>
 
-    <section class="space-y-3">
-      <h2 class="text-lg font-semibold">Strategies</h2>
-      <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {strategies.map((s) => (
-          <li>
-            <a
-              href={`/optimg/${s.id}`}
-              class="flex h-full flex-col gap-1.5 rounded-lg border border-zinc-200 p-5 transition-colors hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
-            >
-              <span class="flex items-center justify-between gap-2">
-                <span class="font-medium">{s.title}</span>
-                <code class="text-xs text-zinc-400 dark:text-zinc-600">{s.id}</code>
-              </span>
-              <span class="text-sm text-zinc-600 dark:text-zinc-400">{s.blurb}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
+    
   </main>
 </Layout>
