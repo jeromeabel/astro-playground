@@ -40,21 +40,25 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   `src/features/optimg/` — `components/DemoImage.astro`, `lib/{sizes,strategies,demo-images}.ts`,
   `scripts/{img-audit,reveal-img}.ts`, and `data/{gallery.json,gallery.ts,benchmark.json}`.
   Only the routes live in `src/pages/optimg/` (Astro requires it); the image
-  *sources* stay in `src/assets/demo/` (absolute glob + generator depend on it).
+  *sources* stay in `src/assets/optimg/` (absolute glob + generator depend on it).
   Imports use TS path aliases from `tsconfig.json`: `@optimg/*` → `src/features/optimg/*`,
   `@components/*`, `@layouts/*`, `@/*` → `src/*`.
 - **Single source of truth:** `src/features/optimg/data/gallery.json` (typed by
   `gallery.ts` beside it). Both the generator and the routes read it, so the
   dataset never drifts.
 - **Generator:** `scripts/gen-images.mjs` (`pnpm gen:optimg`, runs before `build`)
-  uses `sharp` to produce sources in `src/assets/demo/` and hand-cut widths + blur
+  uses `sharp` to produce sources in `src/assets/optimg/` and hand-cut widths + blur
   in `public/manual/`. All 20 sources are committed; `public/manual/` files are
   git-ignored and reproduced on demand.
 - **Rendering:** `src/features/optimg/components/DemoImage.astro` switches on
   `strategy`. `sizes` strings **and** the pixel-perfect/`final` `widths` come from
-  `src/features/optimg/lib/sizes.ts`
-  (token-derived; an explicit `widths` prop is kept by Astro's `||=`, so the served
-  file lands on the slot at 1x and 2x with no resampling). The `border` token is `0`
+  `src/features/optimg/lib/sizes.ts`, which is a derive-only pipeline:
+  `layout` (the only literals) → `slot()`/`retina()` → `slots` (named integer map)
+  → `exact`/`approx` bundles, each keyed `grid`/`cover`. `DemoImage` picks a context
+  once (`const ctx = isCover ? "cover" : "grid"`) and reads `approx[ctx]` (vw "good
+  enough") or `exact[ctx].{sizes,widths,width}` (pixel-perfect). An explicit `widths`
+  prop is kept by Astro's `||=`, so the served file lands on the slot at 1x and 2x
+  with no resampling. The `border` token is `0`
   here — wrappers are borderless so the slot is a clean 720; a bordered card would
   set it. The LQIP/`final` fade is `src/features/optimg/scripts/reveal-img.ts`.
 - **Below-fold loading:** every non-naive strategy marks grid thumbs
@@ -69,6 +73,24 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   the `<Picture>` routes to be responsive). Tailwind 4 utilities live in a cascade
   layer and lose to Astro's unlayered responsive styles, so override `object-fit`/
   `object-position` via the component's `fit`/`position` props, not Tailwind classes.
+- **Slot tokens must match the page container:** `lib/sizes.ts` `layout.maxWidth`
+  is `1024` because both optimg routes wrap their grid in `max-w-5xl` (1024px). If
+  that token drifts from the real container, `pixel-perfect`/`final` emit
+  undersized `sizes` and the browser fetches a too-small file (the `✗ short`
+  bug).
+- **Grid gap is `14px` (not `16`), for true pixel-perfect:** the gap is chosen so
+  every *fixed* slot divides to an integer; `gap-4` (16) left the lg 3-col slot at
+  `314.67px`, so the served file landed on a fractional slot → a sub-pixel resample.
+  The grid `<ul>` in `[strategy]/index.astro` drives its gap from `layout.gap`
+  (inline `style`), the **same** token `slot()` divides by, so the spacing and the
+  pixel-perfect widths can't drift — there's no class left to hand-sync. The mobile
+  1-col slot is `calc(100vw − …)` — inherently fluid, so it's best-effort, never
+  integer. The integer-tiling contract is locked by `__tests__/sizes.test.ts`
+  (a fractional gap fails the tiling invariant). **Verify in dev** (no rebuild, no
+  `netlify serve` needed — the `sizes` string + `widths` are computed at render
+  time): `pnpm dev` → `/optimg/pixel-perfect?debug`, confirm the lg 3-col card reads
+  `slot 316 · 316w · ✓ ok` at DPR 1 (`632w` at DPR 2). Run `netlify serve` + `benchmark:optimg` only for
+  fresh LCP/bytes numbers.
 - **Measurement:** `pnpm benchmark:optimg http://localhost:8888` runs Lighthouse 13
   (3-run median) against `netlify serve`, prints LCP / CLS / bytes across the seven
   strategies, and writes `src/features/optimg/data/benchmark.json` (rendered as a table on the
@@ -81,13 +103,19 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   `captures/` dir; promotion into the blog repo is a manual step.
 - **Dataset is all free:** every `gallery.json` entry is `source: "picsum"`. `sharp`
   bakes a hard-edged label onto every source (resized `public/manual/` widths + blur
-  inherit it, scaling down with the image). `photo` sources get a large bold **title**
-  that survives downscaling. `art` sources get a resampling-demo overlay whose fine,
-  hard-edged detail goes blurry/moiré at non-exact widths — the motivation for the
-  pixel-perfect strategy. Pick the treatment with `OVERLAY=a|b|c|combo pnpm gen:optimg`
-  (default `combo`): **a** = small-text caption panel + 1px hairlines, **b** = fine
-  vertical grating (moiré), **c** = title size ladder (8→84px). Re-test a style on the
-  same photos with `rm src/assets/demo/art-*.jpg && OVERLAY=b pnpm gen:optimg`.
+  inherit it, scaling down with the image). `photo-01..10` get a large bold **title**
+  (`overlay: "d"`) that survives downscaling. `photo-11..20` get a resampling-demo
+  overlay whose fine, hard-edged detail goes blurry/moiré at non-exact widths —
+  the motivation for the pixel-perfect strategy. Pick the treatment with
+  `OVERLAY=a|b|c|combo|e pnpm gen:optimg` (default `combo`): **a** = small-text caption
+  panel + 1px hairlines, **b** = fine vertical grating (moiré), **c** = title size
+  ladder (8→84px), **e** = two-scale moiré: a coarse 60px-period grating tuned to
+  read at the ~316px grid thumb stacked over a fine 20px-period grating tuned for
+  the 976px cover, so whatever the layout one band shows the resample (auto, moiré)
+  vs exact-width (pixel-perfect, crisp) difference while the other is the control.
+  `photo-12/16/20` use **e** (compare `/optimg/auto` vs `/optimg/pixel-perfect`).
+  Re-test a style on the same photos with
+  `rm src/assets/optimg/photo-{11..20}.jpg && OVERLAY=b pnpm gen:optimg`.
   The pre-2026-06-23 procedural generator is kept at `scripts/backup/gen-images-generated.mjs`.
 - **Running Astro 7.0.0** (`^7.0.0` in package.json).
 
