@@ -9,5 +9,5 @@
       "@optimg/*": ["src/features/optimg/*"]
     }
   },
-  "exclude": ["vitest.config.ts"]
+  "exclude": ["vitest.config.ts", "dist"]
 }

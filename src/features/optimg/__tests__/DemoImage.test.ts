@@ -7,7 +7,7 @@ import { gallery } from '../data/gallery';
 import { STRATEGY_IDS } from '../lib/strategies';
 
 const fakeImage = {
-  src: '/src/assets/demo/photo-01.jpg',
+  src: '/src/assets/optimg/photo-01.jpg',
   width: 1280,
   height: 853,
   format: 'jpg',

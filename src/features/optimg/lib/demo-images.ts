@@ -4,9 +4,9 @@ import type { ImageMetadata } from "astro";
 // `import.meta.glob` runs at build time; `imgOf(id)` resolves a gallery id to its
 // imported ImageMetadata so <Picture> can optimize it.
 const images = import.meta.glob<{ default: ImageMetadata }>(
-  "/src/assets/demo/*.jpg",
+  "/src/assets/optimg/*.jpg",
   { eager: true },
 );
 
 export const imgOf = (id: string): ImageMetadata | undefined =>
-  images[`/src/assets/demo/${id}.jpg`]?.default;
+  images[`/src/assets/optimg/${id}.jpg`]?.default;

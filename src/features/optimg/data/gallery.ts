@@ -2,7 +2,7 @@ import data from "./gallery.json";
 
 export interface GalleryItem {
   id: string;
-  overlay: "a" | "b" | "c" | "combo" | "d"; // baked overlay style; "d" = large bold title
+  overlay: "a" | "b" | "c" | "combo" | "d" | "e"; // baked overlay style; "d" = large bold title, "e" = two-scale moiré
   source: "picsum"; // all sources are free Picsum images
   picsumId?: number; // pin a specific curated Picsum image instead of seeding by id
   alt: string;
