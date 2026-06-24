@@ -33,5 +33,8 @@ public/manual/
 .playwright-mcp/
 .superpowers/
 
+# specs — design/plan/todo per initiative, local-only scratch
+.specs/
+
 # optimg blog captures — raw recordings + converted clips stay local (promoted into the blog repo manually)
 captures/
