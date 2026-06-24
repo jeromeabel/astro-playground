@@ -75,6 +75,10 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   `/optimg` hub). Must use `netlify serve` (not `pnpm preview`) — `auto`, `pixel-perfect`,
   `lqip`, `cropped`, and `final` emit `/.netlify/images?...` URLs that 404 on the plain preview server,
   skewing results. Lighthouse is cold-cache; a warm reload is faster but not a fair comparison.
+- **Blog captures:** to record a strategy as a looping `<video>` for the blog post, see
+  `src/features/optimg/scripts/capture.md` — `video-to-web.sh` (ffmpeg wrapper) converts a
+  screen recording into a web-tiny mp4+webm. Raw + converted clips live in the git-ignored
+  `captures/` dir; promotion into the blog repo is a manual step.
 - **Dataset is all free:** every `gallery.json` entry is `source: "picsum"`. `sharp`
   bakes a hard-edged label onto every source (resized `public/manual/` widths + blur
   inherit it, scaling down with the image). `photo` sources get a large bold **title**

@@ -38,11 +38,11 @@ every cold start — see the blog post for the rationale.
 
 ### Dataset
 
-`pnpm gen:images` builds a deterministic 20-image dataset into
+`pnpm gen:optimg` builds a deterministic 20-image dataset into
 `src/assets/demo/` (sources) and `public/manual/` (hand-cut widths + blur).
 Half the photos are seeded [Picsum](https://picsum.photos) images (committed);
 the other half are generated offline with `sharp` (`feTurbulence`, fixed seed)
-and are git-ignored — reproduced on demand. `pnpm build` runs `gen:images` first.
+and are git-ignored — reproduced on demand. `pnpm build` runs `gen:optimg` first.
 
 ### Benchmark
 

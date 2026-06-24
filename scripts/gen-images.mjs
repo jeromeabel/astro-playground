@@ -22,9 +22,9 @@ await mkdir(MANUAL_DIR, { recursive: true });
 
 // Overlay style for `art` sources: pick which resampling-demo treatment to bake.
 // Per item via `overlay` in gallery.json; otherwise the env default applies to all.
-//   OVERLAY=a|b|c|combo pnpm gen:images   (default: combo)
+//   OVERLAY=a|b|c|combo pnpm gen:optimg   (default: combo)
 // Re-test styles on the same photos:
-//   rm src/assets/demo/art-*.jpg && pnpm gen:images
+//   rm src/assets/demo/art-*.jpg && pnpm gen:optimg
 const OVERLAYS = ["a", "b", "c", "combo"];
 const OVERLAY = (process.env.OVERLAY || "combo").toLowerCase();
 if (!OVERLAYS.includes(OVERLAY)) {

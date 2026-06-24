@@ -26,9 +26,12 @@ pnpm-debug.log*
 # Lighthouse run output (keep the dir, ignore the JSON)
 scripts/lh/*.json
 
-# images example — generated artifacts (reproduced by `pnpm gen:images`)
+# optimg example — generated artifacts (reproduced by `pnpm gen:optimg`)
 public/manual/
 
 # MCP and superpowers artifacts
 .playwright-mcp/
 .superpowers/
+
+# optimg blog captures — raw recordings + converted clips stay local (promoted into the blog repo manually)
+captures/
