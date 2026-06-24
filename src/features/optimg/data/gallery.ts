@@ -1,9 +1,8 @@
 import data from "./gallery.json";
 
 export interface GalleryItem {
-  id: string; // "photo-01" | "art-01" ...
-  kind: "photo" | "art"; // "art" => baked hard-edged text label
-  overlay?: "a" | "b" | "c" | "combo"; // per-art resampling-demo style (default: env OVERLAY)
+  id: string;
+  overlay: "a" | "b" | "c" | "combo" | "d"; // baked overlay style; "d" = large bold title
   source: "picsum"; // all sources are free Picsum images
   picsumId?: number; // pin a specific curated Picsum image instead of seeding by id
   alt: string;

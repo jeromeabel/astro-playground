@@ -17,9 +17,9 @@ describe('gallery', () => {
     }
   });
 
-  it('all kind values are "photo" or "art"', () => {
+  it('all items have an overlay', () => {
     for (const item of gallery) {
-      expect(['photo', 'art'], `kind for ${item.id}`).toContain(item.kind);
+      expect(item.overlay, `overlay for ${item.id}`).toBeDefined();
     }
   });
 
@@ -49,12 +49,10 @@ describe('gallery', () => {
     }
   });
 
-  it('overlay when present is one of the valid values', () => {
-    const valid = ['a', 'b', 'c', 'combo'];
+  it('overlay is one of the valid values', () => {
+    const valid = ['a', 'b', 'c', 'combo', 'd'];
     for (const item of gallery) {
-      if (item.overlay !== undefined) {
-        expect(valid, `overlay for ${item.id}`).toContain(item.overlay);
-      }
+      expect(valid, `overlay for ${item.id}`).toContain(item.overlay);
     }
   });
 });

@@ -20,44 +20,37 @@ const gallery = JSON.parse(
 await mkdir(SRC_DIR, { recursive: true });
 await mkdir(MANUAL_DIR, { recursive: true });
 
-// Overlay style for `art` sources: pick which resampling-demo treatment to bake.
-// Per item via `overlay` in gallery.json; otherwise the env default applies to all.
-//   OVERLAY=a|b|c|combo pnpm gen:optimg   (default: combo)
-// Re-test styles on the same photos:
-//   rm src/assets/demo/art-*.jpg && pnpm gen:optimg
-const OVERLAYS = ["a", "b", "c", "combo"];
+// Early exit: if all source and manual files are already present, skip generation.
+// Sources are committed to git; manual widths are git-ignored but reproduced from sources.
+// Re-run after changing gallery.json or deleting files.
+const allPresent = gallery.every((item) => {
+  if (!existsSync(join(SRC_DIR, `${item.id}.jpg`))) return false;
+  for (const w of WIDTHS) {
+    if (!existsSync(join(MANUAL_DIR, `${item.id}-${w}.jpg`))) return false;
+  }
+  return existsSync(join(MANUAL_DIR, `${item.id}-blur.jpg`));
+});
+if (allPresent) {
+  console.log("All images present — skipping generation. Delete files or update gallery.json to regenerate.");
+  process.exit(0);
+}
+
+// Overlay style env fallback for items without an explicit overlay in gallery.json.
+// OVERLAY=a|b|c|combo|d pnpm gen:optimg  (default: combo)
+// Re-test a style on the same photos: rm src/assets/demo/art-*.jpg && OVERLAY=b pnpm gen:optimg
+const OVERLAYS = ["a", "b", "c", "combo", "d"];
 const OVERLAY = (process.env.OVERLAY || "combo").toLowerCase();
 if (!OVERLAYS.includes(OVERLAY)) {
   throw new Error(`OVERLAY must be ${OVERLAYS.join("|")}, got "${OVERLAY}"`);
 }
 
-// Resolve the overlay style for one art item (per-item field wins over env).
-function overlayFor(item) {
-  const style = (item.overlay || OVERLAY).toLowerCase();
-  if (!OVERLAYS.includes(style)) {
-    throw new Error(`${item.id}: overlay must be ${OVERLAYS.join("|")}, got "${style}"`);
-  }
-  return style;
-}
-
 const FONT = `ui-monospace, "DejaVu Sans Mono", "Courier New", monospace`;
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
-// large bold title baked onto every PHOTO source (survives downscaling).
-function overlaySvg(caption, w, h) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
-    <rect x="120" y="${h - 360}" width="${w - 240}" height="2" fill="#ffffff"/>
-    <text x="120" y="${h - 220}" font-family="Helvetica, Arial, sans-serif"
-      font-size="140" font-weight="700" fill="#ffffff"
-      stroke="#000000" stroke-width="3">${esc(caption)}</text>
-  </svg>`;
-}
-
-// All art overlays are baked at SOURCE resolution (2400px). Their fine, hard-edged
-// detail turns sub-pixel when the file is downscaled to a grid slot — so any
-// blur/moiré you see at non-exact widths IS the resampling, which is the whole
-// point of the pixel-perfect strategy. shape-rendering=crispEdges keeps the SVG
-// itself hard so no softening comes from the overlay.
+// All overlays are baked at SOURCE resolution (2400px) with shape-rendering=crispEdges
+// so the SVG itself has hard edges. Fine details (hairlines, grating, small text) go
+// sub-pixel when downscaled — any blur or moiré you see at non-exact widths IS the
+// browser resampling, which is the whole point of the pixel-perfect strategy.
 
 // A — high-contrast caption panel: small sharp title + 1px hairlines that go gray off-grid.
 function styleA(caption, w, h) {
@@ -71,6 +64,7 @@ function styleA(caption, w, h) {
 }
 
 // B — fine vertical grating (4px bars @2400 → ~1px @640): erupts into moiré when resampled.
+// Reference: https://en.wikipedia.org/wiki/Moir%C3%A9_pattern
 function styleB(caption, w, h) {
   const bandH = 240;
   const top = h - bandH;
@@ -101,21 +95,27 @@ function styleC(caption, w, h) {
     ${lines}`;
 }
 
-// combo (default): the A panel with a thin B grating strip stacked above it.
+// combo: the A panel with a thin B grating strip stacked above it.
 function comboSvg(caption, w, h) {
   return styleB("", w, h - 300) + styleA(caption, w, h);
 }
 
-const ART_STYLES = { a: styleA, b: styleB, c: styleC, combo: comboSvg };
+// D — large bold title (white, stroked black): survives all downscales, readable at 32px.
+function styleD(caption, w, h) {
+  return `<rect x="120" y="${h - 360}" width="${w - 240}" height="2" fill="#ffffff"/>
+    <text x="120" y="${h - 220}" font-family="Helvetica, Arial, sans-serif"
+      font-size="140" font-weight="700" fill="#ffffff"
+      stroke="#000000" stroke-width="3">${esc(caption)}</text>`;
+}
 
-// hard-edged art overlay (full-size canvas), selected per item.
-function artOverlaySvg(style, caption, w, h) {
+const OVERLAY_STYLES = { a: styleA, b: styleB, c: styleC, combo: comboSvg, d: styleD };
+
+function overlaySvg(style, caption, w, h) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"
-    shape-rendering="crispEdges">${ART_STYLES[style](caption, w, h)}</svg>`;
+    shape-rendering="crispEdges">${OVERLAY_STYLES[style](caption, w, h)}</svg>`;
 }
 
 async function picsumBuffer(item) {
-  // picsumId pins a specific curated image; otherwise the id is a random seed
   const path = item.picsumId ? `id/${item.picsumId}` : `seed/${item.id}`;
   const url = `https://picsum.photos/${path}/${SRC_W}/${SRC_H}`;
   const res = await fetch(url);
@@ -123,10 +123,8 @@ async function picsumBuffer(item) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-// Offline fallback base: a deterministic continuous-tone image (gradient +
-// fixed-seed fractal noise, no hard edges) so overlays — and the resampling
-// demo — still work when picsum is unreachable. Same idea as the procedural
-// backup generator. No Math.random (seed is the item index).
+// Offline fallback: deterministic gradient + fractal noise so overlays still work
+// when picsum is unreachable. Seed is the item index, not Math.random().
 function tint(i) {
   const hue = (i * 36) % 360;
   return { from: `hsl(${hue} 60% 45%)`, to: `hsl(${(hue + 40) % 360} 60% 25%)` };
@@ -150,7 +148,6 @@ function plasmaSvg(i) {
   </svg>`;
 }
 
-// picsum when reachable; deterministic plasma when it isn't (offline-safe).
 async function baseBuffer(item, i) {
   try {
     return await picsumBuffer(item);
@@ -163,19 +160,19 @@ async function baseBuffer(item, i) {
 
 async function buildItem(item, i) {
   const out = join(SRC_DIR, `${item.id}.jpg`);
+  const style = (item.overlay || OVERLAY).toLowerCase();
+  if (!OVERLAYS.includes(style)) {
+    throw new Error(`${item.id}: overlay must be ${OVERLAYS.join("|")}, got "${style}"`);
+  }
 
-  // idempotent: a present source is reused (offline-safe after first build)
+  // idempotent: a present source is reused (offline-safe after first run)
   let base;
   if (existsSync(out)) {
     base = await readFile(out);
   } else {
-    const svg =
-      item.kind === "art"
-        ? artOverlaySvg(overlayFor(item), item.caption, SRC_W, SRC_H)
-        : overlaySvg(item.caption, SRC_W, SRC_H);
     base = await sharp(await baseBuffer(item, i))
       .resize(SRC_W, SRC_H)
-      .composite([{ input: Buffer.from(svg) }])
+      .composite([{ input: Buffer.from(overlaySvg(style, item.caption, SRC_W, SRC_H)) }])
       .jpeg({ quality: 90 })
       .toBuffer();
     await sharp(base).toFile(out);
@@ -198,8 +195,8 @@ async function buildItem(item, i) {
 for (let i = 0; i < gallery.length; i++) {
   const item = gallery[i];
   await buildItem(item, i);
-  console.log(`✓ ${item.id}${item.kind === "art" ? ` (overlay ${overlayFor(item)})` : ""}`);
+  console.log(`✓ ${item.id} (overlay ${item.overlay || OVERLAY})`);
 }
 console.log(
-  `\nGenerated ${gallery.length} free sources -> src/assets/demo, labeled widths + blur -> public/manual`,
+  `\nGenerated ${gallery.length} sources -> src/assets/demo, labeled widths + blur -> public/manual`,
 );
