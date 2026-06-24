@@ -101,21 +101,31 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   `src/features/optimg/scripts/capture.md` — `video-to-web.sh` (ffmpeg wrapper) converts a
   screen recording into a web-tiny mp4+webm. Raw + converted clips live in the git-ignored
   `captures/` dir; promotion into the blog repo is a manual step.
-- **Dataset is all free:** every `gallery.json` entry is `source: "picsum"`. `sharp`
-  bakes a hard-edged label onto every source (resized `public/manual/` widths + blur
-  inherit it, scaling down with the image). `photo-01..10` get a large bold **title**
-  (`overlay: "d"`) that survives downscaling. `photo-11..20` get a resampling-demo
-  overlay whose fine, hard-edged detail goes blurry/moiré at non-exact widths —
-  the motivation for the pixel-perfect strategy. Pick the treatment with
-  `OVERLAY=a|b|c|combo|e pnpm gen:optimg` (default `combo`): **a** = small-text caption
-  panel + 1px hairlines, **b** = fine vertical grating (moiré), **c** = title size
-  ladder (8→84px), **e** = two-scale moiré: a coarse 60px-period grating tuned to
-  read at the ~316px grid thumb stacked over a fine 20px-period grating tuned for
-  the 976px cover, so whatever the layout one band shows the resample (auto, moiré)
-  vs exact-width (pixel-perfect, crisp) difference while the other is the control.
-  `photo-12/16/20` use **e** (compare `/optimg/auto` vs `/optimg/pixel-perfect`).
-  Re-test a style on the same photos with
-  `rm src/assets/optimg/photo-{11..20}.jpg && OVERLAY=b pnpm gen:optimg`.
+- **Dataset is all free:** 21 `gallery.json` entries (`source: "picsum"`), 7 rows × 3 cols
+  in the grid. `sharp` bakes a hard-edged label onto every source (resized `public/manual/`
+  widths + blur inherit it, scaling down with the image). Overlays dispatched 3-by-3, one
+  overlay style per row:
+
+  | Row | Photos | Overlay | What it tests |
+  |-----|--------|---------|---------------|
+  | 1 | 01–03 | **a** | caption panel + 1px hairlines |
+  | 2 | 04–06 | **b** | fine vertical grating (moiré at non-exact widths) |
+  | 3 | 07–09 | **c** | title size ladder 8→84px |
+  | 4 | 10–12 | **combo** | b grating + a panel stacked |
+  | 5 | 13–15 | **d** | large bold title, survives all downscales |
+  | 6 | 16–18 | **e** | two-scale moiré (derived bands 38/12) |
+  | 7 | 19–21 | **d** | second d row, neutral baseline |
+
+  Pick a fallback treatment with `OVERLAY=a|b|c|combo|d|e pnpm gen:optimg` (default `combo`,
+  used only for photos without an explicit `overlay` in `gallery.json`).
+  **e** uses **derived** periods: grid band `p0(316)=38` (5 CSS px at the 316px 3-col thumb)
+  stacked over cover band `p0(976)=12` (5 CSS px at the 976px solo page). Formula in
+  `scripts/moire.mjs`; contract test asserts slot constants match `lib/sizes.ts`. Compare
+  `/optimg/auto` vs `/optimg/pixel-perfect` at 1280px — row 6 (photo-16/17/18) beats on
+  `auto`, crisp on `pixel-perfect`. DPR 2 on a cover page gives the sharpest contrast.
+  Re-bake specific photos with `FORCE=photo-16,photo-17,photo-18 pnpm gen:optimg`
+  (comma list, validated); `FORCE=all` or `FORCE=1` re-bakes everything.
+  Re-test a style: `OVERLAY=b FORCE=all pnpm gen:optimg`.
   The pre-2026-06-23 procedural generator is kept at `scripts/backup/gen-images-generated.mjs`.
 - **Running Astro 7.0.0** (`^7.0.0` in package.json).
 

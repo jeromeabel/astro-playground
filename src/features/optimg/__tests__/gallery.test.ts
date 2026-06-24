@@ -2,13 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { gallery } from '../data/gallery';
 
 describe('gallery', () => {
-  it('has exactly 20 items', () => {
-    expect(gallery).toHaveLength(20);
+  it('has exactly 21 items', () => {
+    expect(gallery).toHaveLength(21);
   });
 
   it('all ids are unique', () => {
     const ids = gallery.map((item) => item.id);
-    expect(new Set(ids).size).toBe(20);
+    expect(new Set(ids).size).toBe(21);
   });
 
   it('all source values are "picsum"', () => {
@@ -50,7 +50,7 @@ describe('gallery', () => {
   });
 
   it('overlay is one of the valid values', () => {
-    const valid = ['a', 'b', 'c', 'combo', 'd'];
+    const valid = ['a', 'b', 'c', 'combo', 'd', 'e'];
     for (const item of gallery) {
       expect(valid, `overlay for ${item.id}`).toContain(item.overlay);
     }

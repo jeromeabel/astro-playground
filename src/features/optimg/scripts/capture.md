@@ -23,8 +23,9 @@ generous window; trim precisely at the convert step with `START`/`END`.
 | # | Clip | Steps | The "aha" |
 |---|------|-------|-----------|
 | **A** | **LQIP → final fade** | `/optimg/final/<id>`; DevTools → Network → throttle **Slow 3G**; hard reload (Cmd/Ctrl+Shift+R). | Blurred placeholder paints instantly, then the sharp image fades in over the 1200ms `reveal-img` transition — perceived-performance win. |
-| **B** | **srcset badge flip** | `/optimg/final?debug` (Task C gate: `?debug` OR an active `sessionStorage` flag enables the audit overlay); resize the window slowly across the breakpoints. | The audit badge flips **229 → 458 → 704** as the browser picks a wider source — proof the `sizes`/`srcset` math is live, not theoretical. |
+| **B** | **srcset badge flip** | `/optimg/final?debug` (Task C gate: `?debug` OR an active `sessionStorage` flag enables the audit overlay); resize the window slowly across the breakpoints. | The audit badge flips **315 → 480 → 630** as the browser picks a wider source — proof the `sizes`/`srcset` math is live, not theoretical. |
 | **C** | **naive vs final** | Two windows side by side, both throttled; reload together: left `/optimg/naive`, right `/optimg/final`. | `naive` eager-loads all 20 thumbs and visibly shifts layout (CLS); `final` shows lqip placeholders, lazy-loads below the fold, and holds its layout. |
+| **D** | **moiré: auto vs pixel-perfect** | Set viewport to **1280px**. Two windows side by side: left `/optimg/auto`, right `/optimg/pixel-perfect`. Focus on the P3 triad (photo-04/05/06 = row 2 in the 3-col grid). At DPR 1 the grid band (period 38) beats on `auto` (browser serves a non-exact rung) and is crisp on `pixel-perfect` (316w served). Switch DevTools device pixel ratio to 2 for the cover money shot: DPR 2 × 316 = 632w, still exact — or open any single photo page (`/optimg/auto/<id>`) to see the cover band (period 12) beat on `auto`, crisp on `pixel-perfect`. | One band always shows the resample artifact; the other is the control. DPR 2 cover is the sharpest contrast. |
 
 ---
 
