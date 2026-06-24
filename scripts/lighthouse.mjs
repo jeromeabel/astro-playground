@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { FEATURE } from "./config.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(root, "scripts/lh");
@@ -9,7 +10,7 @@ const RUNS = 3; // 3-run median tames single-run noise; bump to 5 if still jumpy
 
 export function runLighthouse(strategy, baseUrl = "http://localhost:4321") {
   mkdirSync(OUT_DIR, { recursive: true });
-  const url = `${baseUrl}/images/${strategy}`;
+  const url = `${baseUrl.replace(/\/$/, "")}/${FEATURE}/${strategy}`;
   for (let run = 1; run <= RUNS; run++) {
     const out = join(OUT_DIR, `${strategy}-${run}.json`);
     console.log(`lighthouse ${strategy} run ${run}/${RUNS} -> ${url}`);

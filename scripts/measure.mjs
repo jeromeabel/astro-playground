@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, existsSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { FEATURE, FEATURE_DIR } from "./config.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(root, "scripts/lh");
@@ -55,7 +56,7 @@ export function printTable() {
   console.log("");
 }
 
-const DATA_FILE = join(root, "src/features/images/data/benchmark.json");
+const DATA_FILE = join(root, FEATURE_DIR, "data/benchmark.json");
 
 // Emit the medians to a committed JSON the /images hub renders as a table.
 export function writeResults() {
@@ -72,7 +73,7 @@ export function writeResults() {
   }).filter(Boolean);
   const out = { generatedAt: new Date().toISOString(), rows };
   writeFileSync(DATA_FILE, JSON.stringify(out, null, 2) + "\n");
-  console.log(`wrote ${rows.length} rows -> src/features/images/data/benchmark.json`);
+  console.log(`wrote ${rows.length} rows -> ${FEATURE_DIR}/data/benchmark.json`);
 }
 
 // allow `node scripts/measure.mjs`

@@ -3,6 +3,7 @@ import { readFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { FEATURE_DIR } from "./config.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC_DIR = join(root, "src/assets/demo");
@@ -14,7 +15,7 @@ const WIDTHS = [640, 960, 1280, 1920];
 const BLUR_W = 32;
 
 const gallery = JSON.parse(
-  await readFile(join(root, "src/features/optimg/data/gallery.json"), "utf8"),
+  await readFile(join(root, FEATURE_DIR, "data/gallery.json"), "utf8"),
 );
 
 await mkdir(SRC_DIR, { recursive: true });
