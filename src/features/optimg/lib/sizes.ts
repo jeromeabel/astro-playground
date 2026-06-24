@@ -1,63 +1,68 @@
-// Layout tokens — single source for the grid CSS, the `sizes` strings, AND the
-// pixel-perfect `widths`. Keep in sync with the Tailwind classes in the pages.
+// Layout tokens — the ONLY literals in this module. Everything downstream
+// (grid CSS, `sizes` strings, pixel-perfect `widths`) derives from these, so a
+// token change recomputes the whole chain with nothing to hand-sync.
 export const layout = {
-  maxWidth: 768, // px, page container (max-w-3xl)
-  padding: 24, // px, horizontal padding each side (px-6)
-  gap: 16, // px, grid gap (gap-4)
-  border: 0, // px, wrapper border each side — 0 here; a bordered card (e.g. the
-  //            blog/comic case) sets this so the slot math stays exact.
+  maxWidth: 1024, // page container (max-w-5xl)
+  padding: 24, // horizontal padding each side (px-6)
+  gap: 14, // grid gap — chosen so every fixed slot divides to an integer; a
+  //          fractional gap (e.g. 16) lands files on sub-pixel slots and
+  //          resamples hard edges. Locked by the tiling invariant in the tests.
+  border: 0, // wrapper border each side — 0 here; a bordered card would set it
+  //            so the slot math stays exact.
   breakpoints: { md: 768, lg: 1024 },
 };
 
+// ---- function: one formula, nothing memorized ------------------------------
+
 // Inner content width when the container is capped at its max.
-const inner = layout.maxWidth - layout.padding * 2; // 720
+const inner = layout.maxWidth - layout.padding * 2;
 
 // Image content box for an N-column grid cell (cell minus its border box).
-function gridSlot(cols: number): number {
-  const cell = (inner - layout.gap * (cols - 1)) / cols;
-  return Math.round(cell - layout.border * 2);
-}
-
-// Cover image spans the full inner width, minus any wrapper border.
-const coverSlot = inner - layout.border * 2; // 720
-
-const gridMd = gridSlot(2); // 352
-const gridLg = gridSlot(3); // 229
-
-// Fluid single-column slot (<md): full viewport minus page padding + border.
-// Mathematically impossible to land a file on this exactly — it's best-effort.
-const mobileSlot = `calc(100vw - ${layout.padding * 2 + layout.border * 2}px)`;
+const slot = (cols: number): number =>
+  Math.round((inner - layout.gap * (cols - 1)) / cols - layout.border * 2);
 
 // Emit each exact slot at 1x and 2x so the served file maps 1:1 on every DPR.
-const retina = (...slots: number[]): number[] =>
-  [...new Set(slots.flatMap((w) => [w, w * 2]))].sort((a, b) => a - b);
+const retina = (...widths: number[]): number[] =>
+  [...new Set(widths.flatMap((w) => [w, w * 2]))].sort((a, b) => a - b);
 
-// Approximate sizes for the `auto`/`lqip` routes — the "good enough" default.
-export const gridSizes = "(min-width: 768px) 33vw, 100vw";
+// ---- map: named integer slots — the SSOT everything else reads -------------
 
-// Token-derived sizes + widths for `pixel-perfect` (and `final`): the served file
-// lands on the real slot, so the browser never resamples hard-edged detail.
-// Grid is 1 col (<md), 2 cols (md), 3 cols (lg+).
-export const pixelPerfectGridSizes = [
-  `(min-width: ${layout.breakpoints.lg}px) ${gridLg}px`,
-  `(min-width: ${layout.breakpoints.md}px) ${gridMd}px`,
+export const slots = {
+  md: slot(2), // 2-col grid cell (≥md)
+  lg: slot(3), // 3-col grid cell (≥lg)
+  cover: inner - layout.border * 2, // full-width detail image
+};
+
+// Fluid single-column slot (<md): full viewport minus page padding + border.
+// Mathematically impossible to land a file on exactly — best-effort.
+const mobileSlot = `calc(100vw - ${layout.padding * 2 + layout.border * 2}px)`;
+
+const exactGridSizes = [
+  `(min-width: ${layout.breakpoints.lg}px) ${slots.lg}px`,
+  `(min-width: ${layout.breakpoints.md}px) ${slots.md}px`,
   mobileSlot,
 ].join(", ");
-export const pixelPerfectGridWidths = retina(gridLg, gridMd); // [229, 352, 458, 704]
 
-// Cover (detail page): one fixed slot once the container caps at ≥768px.
-export const pixelPerfectCoverSizes = [
-  `(min-width: ${layout.maxWidth}px) ${coverSlot}px`,
+const exactCoverSizes = [
+  `(min-width: ${layout.maxWidth}px) ${slots.cover}px`,
   mobileSlot,
 ].join(", ");
-export const pixelPerfectCoverWidths = retina(coverSlot); // [720, 1440]
 
-// 1x base widths — also cap `max-width` (constrained) and land the <img> fallback.
-export const pixelPerfectGridWidth = gridMd; // 352
-export const pixelPerfectCoverWidth = coverSlot; // 720
-
-// Detail (`cover`) default for auto/manual/cropped — approximate.
-export const detailSizes = [
+const approxCoverSizes = [
   `(min-width: ${layout.maxWidth}px) ${inner}px`,
   `calc(100vw - ${layout.padding * 2}px)`,
 ].join(", ");
+
+// ---- bundles: grouped by context (grid | cover), paired exact vs approx -----
+//   exact  = pixel-perfect: the file lands on the slot at 1x/2x, no resample
+//            (hard-edged content — the pixel-perfect / final strategies).
+//   approx = vw-based "good enough" for photos (auto / lqip / manual / cropped).
+export const exact = {
+  grid: { sizes: exactGridSizes, widths: retina(slots.lg, slots.md), width: slots.md },
+  cover: { sizes: exactCoverSizes, widths: retina(slots.cover), width: slots.cover },
+};
+
+export const approx = {
+  grid: `(min-width: ${layout.breakpoints.md}px) 33vw, 100vw`,
+  cover: approxCoverSizes,
+};

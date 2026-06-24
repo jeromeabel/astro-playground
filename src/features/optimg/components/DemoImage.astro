@@ -3,16 +3,7 @@ import { Picture, getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import type { GalleryItem } from "@optimg/data/gallery";
 import type { Strategy } from "@optimg/lib/strategies";
-import {
-  gridSizes,
-  detailSizes,
-  pixelPerfectGridSizes,
-  pixelPerfectGridWidths,
-  pixelPerfectGridWidth,
-  pixelPerfectCoverSizes,
-  pixelPerfectCoverWidths,
-  pixelPerfectCoverWidth,
-} from "@optimg/lib/sizes";
+import { exact, approx } from "@optimg/lib/sizes";
 
 interface Props {
   item: GalleryItem;
@@ -49,12 +40,12 @@ const baseProps: {
   class: "block w-full",
 };
 
-// auto + lqip use the approximate default; pixel-perfect uses token-derived
-// sizes + widths so a generated file lands exactly on the slot (no resampling).
-const autoSizes = isCover ? detailSizes : gridSizes;
-const ppSizes = isCover ? pixelPerfectCoverSizes : pixelPerfectGridSizes;
-const ppWidths = isCover ? pixelPerfectCoverWidths : pixelPerfectGridWidths;
-const ppWidth = isCover ? pixelPerfectCoverWidth : pixelPerfectGridWidth;
+// Pick the layout context once; auto/lqip use the approximate (vw) sizes,
+// pixel-perfect uses the token-derived sizes + widths so a generated file lands
+// exactly on the slot (no resampling).
+const ctx = isCover ? "cover" : "grid";
+const autoSizes = approx[ctx];
+const { sizes: ppSizes, widths: ppWidths, width: ppWidth } = exact[ctx];
 
 // "final" = LQIP + fade + pixel-perfect widths. Crop is opt-in per gallery item
 // (default off → natural 3:2); when set, wide 16:9 cover / square-ish 4:3 thumb.
