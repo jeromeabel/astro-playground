@@ -4,23 +4,15 @@
 // × devicePixelRatio, so you can watch the chosen srcset candidate flip across
 // breakpoints and DPR.
 //
-// STRICTLY OPT-IN. In production only a `?debug` query param runs runImgAudit()
-// (guarded in the image routes), so the Lighthouse path stays bare. In dev the
-// on/off state lives in sessionStorage (initDevAudit) so it survives navigation
-// between grid and detail without threading ?debug through every link; the
-// production runtime never reads storage, so a stale flag can't leak into a
-// benchmark.
+// STRICTLY OPT-IN, and the heavy work is gated *before* this chunk loads: the
+// image routes only `import()` it when `?debug` is present or the toggle's
+// sessionStorage flag is set, so a bare URL (e.g. the Lighthouse benchmark, in
+// its own fresh Chrome with empty storage) fetches nothing and adds no DOM.
+// Entering via `?debug` persists the flag so the overlay survives grid → detail
+// navigation; the floating toggle turns it back off.
 
 const BADGE_CLASS = "img-audit-badge";
 const STORAGE_KEY = "img-audit";
-
-const isAuditOn = () => {
-  try {
-    return sessionStorage.getItem(STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-};
 
 const setAuditOn = (on: boolean) => {
   try {
@@ -31,12 +23,12 @@ const setAuditOn = (on: boolean) => {
   }
 };
 
-type Verdict = { mark: string; color: string };
+export type Verdict = { mark: string; color: string };
 
 // got vs need (slot × DPR): short if the file can't cover the slot at this
 // density (real bug / upscaling); over-fetch if it overshoots by a clear rung
 // (expected at fractional DPR — see the spec); covered otherwise.
-function verdict(got: number, need: number): Verdict {
+export function verdict(got: number, need: number): Verdict {
   if (got < need - 1) return { mark: "✗ short", color: "#dc2626" };
   if (got > need * 1.25) return { mark: "≫ over", color: "#d97706" };
   return { mark: "✓ ok", color: "#16a34a" };
@@ -46,9 +38,13 @@ function verdict(got: number, need: number): Verdict {
 // (/_image?…&w=N or /.netlify/images?…&w=N) carry it as the `w` query param.
 // naive (no srcset) and manual (w-descriptor files, no `w` param) have none, so
 // fall back to the decoded intrinsic width — itself a teaching signal.
-function servedWidth(img: HTMLImageElement): { got: number; fromParam: boolean } {
+export function servedWidth(
+  img: { currentSrc: string; naturalWidth: number }
+): { got: number; fromParam: boolean } {
   try {
-    const w = new URL(img.currentSrc, location.href).searchParams.get("w");
+    const loc = (globalThis as Record<string, unknown>).location;
+    const base = typeof loc === 'object' && loc !== null ? (loc as { href: string }).href : 'http://localhost/';
+    const w = new URL(img.currentSrc, base).searchParams.get("w");
     if (w) return { got: Number(w), fromParam: true };
   } catch {
     /* currentSrc may be empty before load — fall through */
@@ -96,9 +92,13 @@ function render() {
   });
 }
 
+// Single entry, called by the routes only when the overlay is on. Persists the
+// flag (so ?debug survives grid → detail nav), mounts the off-switch, and keeps
+// the badges in sync: images may still be decoding, and resize/DPR changes
+// (moving between monitors or zooming) shift the chosen candidate.
 export function runImgAudit() {
-  // Images may still be decoding; render now, on load, and on every resize/DPR
-  // change (moving between monitors or zooming shifts the chosen candidate).
+  setAuditOn(true);
+  mountToggle();
   const run = () => requestAnimationFrame(render);
   run();
   window.addEventListener("load", run);
@@ -108,34 +108,21 @@ export function runImgAudit() {
   });
 }
 
-// Dev-only entry: state comes from sessionStorage so it persists across grid →
-// detail navigation in the same tab. A `?debug` URL forces it on (and persists),
-// matching the production opt-in. Renders the toggle and runs the audit if on.
-export function initDevAudit(urlDebug: boolean) {
-  if (urlDebug) setAuditOn(true);
-  const on = isAuditOn();
-  mountDebugToggle(on);
-  if (on) runImgAudit();
-}
-
-// Dev-only floating toggle: flips the shared sessionStorage flag and reloads, so
-// the overlay turns on/off without hand-editing URLs. Never shipped to production
-// (callers gate on import.meta.env.DEV), keeping the benchmark DOM bare.
-function mountDebugToggle(active: boolean) {
+// Floating off-switch. It only exists while the overlay is on (the chunk loads
+// only then), so its job is to clear the flag and reload; ?debug is stripped so
+// the param can't immediately re-enable it. Re-enable by visiting `?debug`.
+function mountToggle() {
   if (document.getElementById("img-audit-toggle")) return;
   const btn = document.createElement("button");
   btn.id = "img-audit-toggle";
   btn.type = "button";
-  btn.textContent = active ? "🔍 debug: on" : "🔍 debug: off";
+  btn.textContent = "🔍 debug: on";
   btn.style.cssText =
     "position:fixed;bottom:1rem;right:1rem;z-index:50;padding:.375rem .625rem;" +
     "border-radius:.5rem;border:1px solid rgba(255,255,255,.2);" +
-    `font:600 12px/1 ui-monospace,monospace;color:#fff;cursor:pointer;` +
-    `background:${active ? "#16a34a" : "rgba(0,0,0,.82)"}`;
+    "font:600 12px/1 ui-monospace,monospace;color:#fff;cursor:pointer;background:#16a34a";
   btn.addEventListener("click", () => {
-    setAuditOn(!active);
-    // Strip ?debug so storage is the sole source of truth — otherwise the URL
-    // param re-enables on every reload and the toggle can never turn it off.
+    setAuditOn(false);
     const url = new URL(location.href);
     url.searchParams.delete("debug");
     location.href = url.href;

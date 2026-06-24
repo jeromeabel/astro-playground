@@ -1,10 +1,10 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
-import DemoImage from "@images/components/DemoImage.astro";
-import { gallery, type GalleryItem } from "@images/data/gallery";
-import { STRATEGIES, STRATEGY_IDS, type Strategy } from "@images/lib/strategies";
-import { imgOf } from "@images/lib/demo-images";
+import DemoImage from "@optimg/components/DemoImage.astro";
+import { gallery, type GalleryItem } from "@optimg/data/gallery";
+import { STRATEGIES, STRATEGY_IDS, type Strategy } from "@optimg/lib/strategies";
+import { imgOf } from "@optimg/lib/demo-images";
 
 export function getStaticPaths() {
   return STRATEGY_IDS.flatMap((strategy) =>
@@ -24,8 +24,8 @@ const meta = STRATEGIES.find((s) => s.id === strategy);
       <Breadcrumb
         items={[
           { label: "Playground", href: "/" },
-          { label: "Images", href: "/images" },
-          { label: meta?.title ?? strategy, href: `/images/${strategy}` },
+          { label: "Images", href: "/optimg" },
+          { label: meta?.title ?? strategy, href: `/optimg/${strategy}` },
           { label: item.caption },
         ]}
       />
@@ -42,14 +42,15 @@ const meta = STRATEGIES.find((s) => s.id === strategy);
     </figure>
   </main>
   <script>
-    import "@images/scripts/reveal-img.ts";
-    // Opt-in served-size overlay (see grid route): dev toggle + shared state, or
-    // prod ?debug-only.
-    const urlDebug = new URLSearchParams(location.search).has("debug");
-    if (import.meta.env.DEV) {
-      import("@images/scripts/img-audit.ts").then((m) => m.initDevAudit(urlDebug));
-    } else if (urlDebug) {
-      import("@images/scripts/img-audit.ts").then((m) => m.runImgAudit());
+    import "@optimg/scripts/reveal-img.ts";
+    // Opt-in served-size overlay (see grid route): gated before the chunk loads
+    // via ?debug or the toggle's persisted sessionStorage flag.
+    let on = new URLSearchParams(location.search).has("debug");
+    try {
+      on ||= sessionStorage.getItem("img-audit") === "1";
+    } catch {
+      /* storage disabled — ?debug still works */
     }
+    if (on) import("@optimg/scripts/img-audit.ts").then((m) => m.runImgAudit());
   </script>
 </Layout>

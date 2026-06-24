@@ -1,10 +1,10 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
-import DemoImage from "@images/components/DemoImage.astro";
-import { gallery } from "@images/data/gallery";
-import { STRATEGIES, STRATEGY_IDS, type Strategy } from "@images/lib/strategies";
-import { imgOf } from "@images/lib/demo-images";
+import DemoImage from "@optimg/components/DemoImage.astro";
+import { gallery } from "@optimg/data/gallery";
+import { STRATEGIES, STRATEGY_IDS, type Strategy } from "@optimg/lib/strategies";
+import { imgOf } from "@optimg/lib/demo-images";
 
 export function getStaticPaths() {
   return STRATEGY_IDS.map((strategy) => ({ params: { strategy } }));
@@ -20,7 +20,7 @@ const meta = STRATEGIES.find((s) => s.id === strategy);
       <Breadcrumb
         items={[
           { label: "Playground", href: "/" },
-          { label: "Images", href: "/images" },
+          { label: "Images", href: "/optimg" },
           { label: meta?.title ?? strategy },
         ]}
       />
@@ -31,7 +31,7 @@ const meta = STRATEGIES.find((s) => s.id === strategy);
     <ul class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {gallery.map((item) => (
         <li class="overflow-hidden rounded-lg" data-img-card>
-          <a href={`/images/${strategy}/${item.id}`} class="block">
+          <a href={`/optimg/${strategy}/${item.id}`} class="block">
             <DemoImage item={item} strategy={strategy} type="thumb" image={imgOf(item.id)} />
           </a>
         </li>
@@ -39,15 +39,16 @@ const meta = STRATEGIES.find((s) => s.id === strategy);
     </ul>
   </main>
   <script>
-    import "@images/scripts/reveal-img.ts";
-    // Opt-in served-size overlay. The audit chunk is code-split. In dev: toggle +
-    // sessionStorage-shared state (survives navigation). In prod: only ?debug runs
-    // it, so the bare Lighthouse URL fetches nothing and adds no DOM.
-    const urlDebug = new URLSearchParams(location.search).has("debug");
-    if (import.meta.env.DEV) {
-      import("@images/scripts/img-audit.ts").then((m) => m.initDevAudit(urlDebug));
-    } else if (urlDebug) {
-      import("@images/scripts/img-audit.ts").then((m) => m.runImgAudit());
+    import "@optimg/scripts/reveal-img.ts";
+    // Opt-in served-size overlay. Gated *before* the chunk loads: only ?debug or
+    // the toggle's persisted sessionStorage flag pulls it in, so a bare URL (e.g.
+    // the Lighthouse benchmark) fetches nothing and adds no DOM.
+    let on = new URLSearchParams(location.search).has("debug");
+    try {
+      on ||= sessionStorage.getItem("img-audit") === "1";
+    } catch {
+      /* storage disabled — ?debug still works */
     }
+    if (on) import("@optimg/scripts/img-audit.ts").then((m) => m.runImgAudit());
   </script>
 </Layout>

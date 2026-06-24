@@ -1,8 +1,8 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
-import benchmarkData from "@images/data/benchmark.json";
-import { STRATEGIES } from "@images/lib/strategies";
+import benchmarkData from "@optimg/data/benchmark.json";
+import { STRATEGIES } from "@optimg/lib/strategies";
 
 interface BenchmarkRow {
   strategy: string;
@@ -53,7 +53,7 @@ const strategies = STRATEGIES;
               {rows.map((r) => (
                 <tr class="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/50">
                   <td class="px-4 py-2">
-                    <a href={`/images/${r.strategy}`} class="font-mono hover:underline">{r.strategy}</a>
+                    <a href={`/optimg/${r.strategy}`} class="font-mono hover:underline">{r.strategy}</a>
                   </td>
                   <td class="px-4 py-2 tabular-nums">{r.lcpMs}</td>
                   <td class="px-4 py-2 tabular-nums">{r.cls.toFixed(3)}</td>
@@ -65,7 +65,7 @@ const strategies = STRATEGIES;
         </div>
       ) : (
         <p class="text-sm text-zinc-600 dark:text-zinc-400">
-          No measurements yet — run <code>pnpm benchmark:images</code> against
+          No measurements yet — run <code>pnpm benchmark:optimg</code> against
           <code>netlify serve</code> to populate this table.
         </p>
       )}
@@ -81,7 +81,7 @@ const strategies = STRATEGIES;
         {strategies.map((s) => (
           <li>
             <a
-              href={`/images/${s.id}`}
+              href={`/optimg/${s.id}`}
               class="flex h-full flex-col gap-1.5 rounded-lg border border-zinc-200 p-5 transition-colors hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
             >
               <span class="flex items-center justify-between gap-2">
