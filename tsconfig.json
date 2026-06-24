@@ -8,5 +8,6 @@
       "@components/*": ["src/components/*"],
       "@optimg/*": ["src/features/optimg/*"]
     }
-  }
+  },
+  "exclude": ["vitest.config.ts"]
 }

@@ -14,6 +14,7 @@
     "lighthouse:pixel-perfect": "node scripts/lighthouse.mjs pixel-perfect",
     "lighthouse:lqip": "node scripts/lighthouse.mjs lqip",
     "benchmark:optimg": "node scripts/benchmark.mjs",
+    "test": "vitest run",
     "astro": "astro"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "serve": "^14.2.6",
-    "sharp": "^0.35.2"
+    "sharp": "^0.35.2",
+    "vitest": "^4.1.9"
   }
 }
