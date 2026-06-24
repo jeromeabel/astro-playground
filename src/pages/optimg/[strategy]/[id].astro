@@ -1,0 +1,56 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Breadcrumb from "@components/Breadcrumb.astro";
+import DemoImage from "@optimg/components/DemoImage.astro";
+import { gallery, type GalleryItem } from "@optimg/data/gallery";
+import { STRATEGIES, STRATEGY_IDS, type Strategy } from "@optimg/lib/strategies";
+import { imgOf } from "@optimg/lib/demo-images";
+
+export function getStaticPaths() {
+  return STRATEGY_IDS.flatMap((strategy) =>
+    gallery.map((item) => ({ params: { strategy, id: item.id }, props: { item } })),
+  );
+}
+
+const strategy = Astro.params.strategy as Strategy;
+const { item } = Astro.props as { item: GalleryItem };
+const image = imgOf(item.id);
+const meta = STRATEGIES.find((s) => s.id === strategy);
+---
+
+<Layout title={`${item.caption} / ${strategy} — Astro Playground`} description={item.alt}>
+  <main class="mx-auto max-w-5xl space-y-6 px-6 py-16">
+    <header class="space-y-3">
+      <Breadcrumb
+        items={[
+          { label: "Playground", href: "/" },
+          { label: "Images", href: "/optimg" },
+          { label: meta?.title ?? strategy, href: `/optimg/${strategy}` },
+          { label: item.caption },
+        ]}
+      />
+      <h1 class="text-2xl font-semibold">{item.caption}</h1>
+    </header>
+
+    <figure class="space-y-2">
+      <div class="overflow-hidden rounded-lg" data-img-card>
+        <DemoImage item={item} strategy={strategy} type="cover" image={image} />
+      </div>
+      <figcaption class="text-sm text-zinc-600 dark:text-zinc-400">
+        overlay: {item.overlay} · strategy: {strategy} · Photo by <a href={item.authorUrl} target="_blank" rel="noopener noreferrer" class="underline hover:text-zinc-900 dark:hover:text-zinc-100">{item.author}</a> on Unsplash
+      </figcaption>
+    </figure>
+  </main>
+  <script>
+    import "@optimg/scripts/reveal-img.ts";
+    // Opt-in served-size overlay (see grid route): gated before the chunk loads
+    // via ?debug or the toggle's persisted sessionStorage flag.
+    let on = new URLSearchParams(location.search).has("debug");
+    try {
+      on ||= sessionStorage.getItem("img-audit") === "1";
+    } catch {
+      /* storage disabled — ?debug still works */
+    }
+    if (on) import("@optimg/scripts/img-audit.ts").then((m) => m.runImgAudit());
+  </script>
+</Layout>

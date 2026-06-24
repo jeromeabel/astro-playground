@@ -55,7 +55,7 @@ export function printTable() {
   console.log("");
 }
 
-const DATA_FILE = join(root, "src/data/benchmark.json");
+const DATA_FILE = join(root, "src/features/images/data/benchmark.json");
 
 // Emit the medians to a committed JSON the /images hub renders as a table.
 export function writeResults() {
@@ -72,7 +72,7 @@ export function writeResults() {
   }).filter(Boolean);
   const out = { generatedAt: new Date().toISOString(), rows };
   writeFileSync(DATA_FILE, JSON.stringify(out, null, 2) + "\n");
-  console.log(`wrote ${rows.length} rows -> src/data/benchmark.json`);
+  console.log(`wrote ${rows.length} rows -> src/features/images/data/benchmark.json`);
 }
 
 // allow `node scripts/measure.mjs`
