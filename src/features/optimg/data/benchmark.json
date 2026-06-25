@@ -1,54 +1,54 @@
 {
-  "generatedAt": "2026-06-24T15:06:07.628Z",
+  "generatedAt": "2026-06-25T15:25:01.884Z",
   "rows": [
     {
       "strategy": "naive",
       "runs": 3,
-      "lcpMs": 4422,
+      "lcpMs": 4876,
       "cls": 0.011,
-      "bytes": 9399069
+      "bytes": 9399742
     },
     {
       "strategy": "manual",
       "runs": 3,
-      "lcpMs": 965,
+      "lcpMs": 749,
       "cls": 0,
-      "bytes": 961454
+      "bytes": 962127
     },
     {
       "strategy": "auto",
       "runs": 3,
-      "lcpMs": 1101,
+      "lcpMs": 1529,
       "cls": 0,
-      "bytes": 522739
+      "bytes": 523412
     },
     {
       "strategy": "pixel-perfect",
       "runs": 3,
-      "lcpMs": 1037,
+      "lcpMs": 1001,
       "cls": 0,
-      "bytes": 235394
+      "bytes": 236067
     },
     {
       "strategy": "lqip",
       "runs": 3,
-      "lcpMs": 1251,
+      "lcpMs": 1254,
       "cls": 0,
-      "bytes": 540380
+      "bytes": 541053
     },
     {
       "strategy": "cropped",
       "runs": 3,
-      "lcpMs": 1569,
+      "lcpMs": 1600,
       "cls": 0,
-      "bytes": 558767
+      "bytes": 559440
     },
     {
       "strategy": "final",
       "runs": 3,
-      "lcpMs": 1057,
+      "lcpMs": 1077,
       "cls": 0,
-      "bytes": 252900
+      "bytes": 253573
     }
   ]
 }
