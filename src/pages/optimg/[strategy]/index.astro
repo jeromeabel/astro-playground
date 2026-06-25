@@ -32,10 +32,10 @@ const meta = STRATEGIES.find((s) => s.id === strategy);
     <!-- Gap driven from layout.gap (lib/sizes.ts) — the same token the slot math
          uses — so the grid spacing and the pixel-perfect widths never drift. -->
     <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={`gap:${layout.gap}px`}>
-      {gallery.map((item) => (
+      {gallery.map((item, i) => (
         <li class="overflow-hidden rounded-lg" data-img-card>
           <a href={`/optimg/${strategy}/${item.id}`} class="block">
-            <DemoImage item={item} strategy={strategy} type="thumb" image={imgOf(item.id)} />
+            <DemoImage item={item} strategy={strategy} type="thumb" image={imgOf(item.id)} index={i} />
           </a>
         </li>
       ))}

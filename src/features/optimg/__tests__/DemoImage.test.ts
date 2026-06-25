@@ -84,18 +84,36 @@ describe('DemoImage — Layer 2 Container API', () => {
     expect(html).toContain('aria-hidden="true"');
   });
 
-  // --- below-fold lazy guard (Task D) ---
-  // Every non-naive strategy must mark below-fold thumbs loading="lazy" so the
-  // grid only fetches what scrolls into view. naive emits no loading attr on
-  // purpose (browser-default eager → all 20 thumbs upfront) — the worst case it
-  // teaches. cover slots stay eager (asserted above) since they're above-fold.
+  // --- index-based loading/fetchpriority (Task D) ---
+  // index=0  → eager + high  (the single LCP cell)
+  // index<6  → eager + auto  (above-fold, not LCP — don't dilute the high signal)
+  // index≥6  → lazy  + auto  (below-fold)
+  // naive emits no loading attr on purpose (browser-default eager → all 20 upfront).
+  // cover slots stay eager+high regardless of index (asserted above).
   const nonNaive = STRATEGY_IDS.filter((s) => s !== 'naive');
 
-  it.each(nonNaive)('%s/thumb emits loading="lazy" (below-fold)', async (strategy) => {
+  it.each(nonNaive)('%s/thumb index=0 emits loading="eager" fetchpriority="high" (LCP)', async (strategy) => {
     const html = await container.renderToString(DemoImage, {
-      props: { item, strategy, type: 'thumb', image: fakeImage },
+      props: { item, strategy, type: 'thumb', image: fakeImage, index: 0 },
+    });
+    expect(html).toContain('loading="eager"');
+    expect(html).toContain('fetchpriority="high"');
+  });
+
+  it.each(nonNaive)('%s/thumb index=3 emits loading="eager" fetchpriority="auto" (above-fold)', async (strategy) => {
+    const html = await container.renderToString(DemoImage, {
+      props: { item, strategy, type: 'thumb', image: fakeImage, index: 3 },
+    });
+    expect(html).toContain('loading="eager"');
+    expect(html).toContain('fetchpriority="auto"');
+  });
+
+  it.each(nonNaive)('%s/thumb index=6 emits loading="lazy" (below-fold)', async (strategy) => {
+    const html = await container.renderToString(DemoImage, {
+      props: { item, strategy, type: 'thumb', image: fakeImage, index: 6 },
     });
     expect(html).toContain('loading="lazy"');
+    expect(html).toContain('fetchpriority="auto"');
   });
 
   it('naive/thumb has no loading attribute (browser-default eager by design)', async () => {

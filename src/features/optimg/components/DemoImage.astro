@@ -10,13 +10,28 @@ interface Props {
   strategy: Strategy;
   type: "thumb" | "cover";
   image?: ImageMetadata; // required for every strategy except "manual"
+  index?: number; // grid position; omit to keep caller lazy by default
 }
 
-const { item, strategy, type, image } = Astro.props;
+const { item, strategy, type, image, index } = Astro.props;
+
+// Viewport is unknown at build time (static prerender, no Client Hints on first
+// nav) so EAGER_AHEAD is a fixed worst-case constant: 6 covers mobile 1-col (3
+// above fold) and md/lg 2–3-col (2 rows = 6). Over-eager on mobile costs ~2
+// small thumbs; lazy-on-LCP hurts LCP. Bias high.
+const EAGER_AHEAD = 6;
+
+// undefined index (caller omitted it) → Infinity → safely below-fold.
+function isAboveFold(i: number | undefined): boolean {
+  return (i ?? Infinity) < EAGER_AHEAD;
+}
 
 const isCover = type === "cover";
-const loading = isCover ? "eager" : "lazy";
-const fetchpriority = isCover ? "high" : "auto";
+const isLCP = !isCover && index === 0;
+const loading = (isCover || isAboveFold(index)) ? "eager" : "lazy";
+// fetchpriority="high" is a scalpel — exactly one element (the LCP). Spreading
+// it across the whole above-fold row dilutes the signal and hurts LCP.
+const fetchpriority = (isCover || isLCP) ? "high" : "auto";
 const width = isCover ? 1280 : 640;
 const height = isCover ? 853 : 427; // 3:2
 
