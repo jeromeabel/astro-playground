@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-06-28T20:20:09.458Z",
+  "rows": [
+    {
+      "strategy": "naive",
+      "runs": 3,
+      "lcpMs": 615,
+      "cls": 0.004,
+      "bytes": 9355013
+    },
+    {
+      "strategy": "manual",
+      "runs": 3,
+      "lcpMs": 409,
+      "cls": 0,
+      "bytes": 921483
+    },
+    {
+      "strategy": "auto",
+      "runs": 3,
+      "lcpMs": 412,
+      "cls": 0,
+      "bytes": 746530
+    },
+    {
+      "strategy": "pixel-perfect",
+      "runs": 3,
+      "lcpMs": 336,
+      "cls": 0,
+      "bytes": 239917
+    },
+    {
+      "strategy": "lqip",
+      "runs": 3,
+      "lcpMs": 649,
+      "cls": 0,
+      "bytes": 758345
+    },
+    {
+      "strategy": "cropped",
+      "runs": 3,
+      "lcpMs": 435,
+      "cls": 0,
+      "bytes": 816489
+    },
+    {
+      "strategy": "final",
+      "runs": 3,
+      "lcpMs": 411,
+      "cls": 0,
+      "bytes": 251878
+    }
+  ]
+}

@@ -6,35 +6,36 @@ import { FEATURE } from "./config.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(root, "scripts/lh");
-const RUNS = 3; // 3-run median tames single-run noise; bump to 5 if still jumpy
+const RUNS = 5; // 5-run median tames single-run noise
 
-export function runLighthouse(strategy, baseUrl = "http://localhost:4321") {
-  mkdirSync(OUT_DIR, { recursive: true });
+// mode: "mobile" (Lighthouse default — Moto G Power, Slow 4G, CPU ×4)
+//       "desktop" (--preset=desktop — CPU ×1, 10 Mbps)
+export function runLighthouse(strategy, baseUrl = "http://localhost:4321", mode = "mobile") {
+  const outDir = join(OUT_DIR, mode);
+  mkdirSync(outDir, { recursive: true });
   const url = `${baseUrl.replace(/\/$/, "")}/${FEATURE}/${strategy}`;
   for (let run = 1; run <= RUNS; run++) {
-    const out = join(OUT_DIR, `${strategy}-${run}.json`);
-    console.log(`lighthouse ${strategy} run ${run}/${RUNS} -> ${url}`);
-    const res = spawnSync(
-      "pnpm",
-      [
-        "dlx",
-        "lighthouse@13",
-        url,
-        "--preset=desktop",
-        "--only-categories=performance",
-        "--output=json",
-        `--output-path=${out}`,
-        '--chrome-flags=--headless=new --no-sandbox --disable-gpu',
-        "--quiet",
-      ],
-      { stdio: "inherit", cwd: root },
-    );
+    const out = join(outDir, `${strategy}-${run}.json`);
+    console.log(`lighthouse ${mode} ${strategy} run ${run}/${RUNS} -> ${url}`);
+    const args = [
+      "dlx",
+      "lighthouse@13",
+      url,
+      "--only-categories=performance",
+      "--output=json",
+      `--output-path=${out}`,
+      "--chrome-flags=--headless=new --no-sandbox --disable-gpu",
+      "--quiet",
+    ];
+    if (mode === "desktop") args.splice(3, 0, "--preset=desktop");
+    const res = spawnSync("pnpm", args, { stdio: "inherit", cwd: root });
     if (res.status !== 0) {
-      throw new Error(`lighthouse failed for ${strategy} run ${run}`);
+      throw new Error(`lighthouse failed for ${mode} ${strategy} run ${run}`);
     }
   }
 }
 
-// allow `node scripts/lighthouse.mjs <strategy> [baseUrl]`
+// allow `node scripts/lighthouse.mjs <strategy> [baseUrl] [mode]`
 const isMain = fileURLToPath(import.meta.url) === process.argv[1];
-if (isMain && process.argv[2]) runLighthouse(process.argv[2], process.argv[3]);
+if (isMain && process.argv[2])
+  runLighthouse(process.argv[2], process.argv[3], process.argv[4]);

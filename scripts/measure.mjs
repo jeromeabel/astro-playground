@@ -14,9 +14,10 @@ function median(nums) {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
-function metricsFor(strategy) {
-  if (!existsSync(OUT_DIR)) return null;
-  const files = readdirSync(OUT_DIR).filter(
+function metricsFor(strategy, mode = "mobile") {
+  const dir = join(OUT_DIR, mode);
+  if (!existsSync(dir)) return null;
+  const files = readdirSync(dir).filter(
     (f) => f.startsWith(`${strategy}-`) && f.endsWith(".json"),
   );
   if (files.length === 0) return null;
@@ -24,7 +25,7 @@ function metricsFor(strategy) {
   const cls = [];
   const bytes = [];
   for (const f of files) {
-    const j = JSON.parse(readFileSync(join(OUT_DIR, f), "utf8"));
+    const j = JSON.parse(readFileSync(join(dir, f), "utf8"));
     const a = j.audits;
     lcp.push(a["largest-contentful-paint"].numericValue);
     cls.push(a["cumulative-layout-shift"].numericValue);
@@ -38,9 +39,10 @@ function metricsFor(strategy) {
   };
 }
 
-export function printTable() {
-  const rows = STRATEGIES.map((s) => ({ s, m: metricsFor(s) }));
-  console.log("\nStrategy        Runs   LCP (ms)   CLS      Bytes (KB)");
+export function printTable(mode = "mobile") {
+  const rows = STRATEGIES.map((s) => ({ s, m: metricsFor(s, mode) }));
+  console.log(`\n[${mode}]`);
+  console.log("Strategy        Runs   LCP (ms)   CLS      Bytes (KB)");
   console.log("------------------------------------------------------");
   for (const { s, m } of rows) {
     if (!m) {
@@ -56,12 +58,12 @@ export function printTable() {
   console.log("");
 }
 
-const DATA_FILE = join(root, FEATURE_DIR, "data/benchmark.json");
-
 // Emit the medians to a committed JSON the /images hub renders as a table.
-export function writeResults() {
+// One file per mode: data/benchmark.mobile.json, data/benchmark.desktop.json
+export function writeResults(mode = "mobile") {
+  const dataFile = join(root, FEATURE_DIR, `data/benchmark.${mode}.json`);
   const rows = STRATEGIES.map((s) => {
-    const m = metricsFor(s);
+    const m = metricsFor(s, mode);
     if (!m) return null;
     return {
       strategy: s,
@@ -71,10 +73,11 @@ export function writeResults() {
       bytes: Math.round(m.bytes),
     };
   }).filter(Boolean);
-  const out = { generatedAt: new Date().toISOString(), rows };
-  writeFileSync(DATA_FILE, JSON.stringify(out, null, 2) + "\n");
-  console.log(`wrote ${rows.length} rows -> ${FEATURE_DIR}/data/benchmark.json`);
+  const out = { mode, generatedAt: new Date().toISOString(), rows };
+  writeFileSync(dataFile, JSON.stringify(out, null, 2) + "\n");
+  console.log(`wrote ${rows.length} rows -> ${FEATURE_DIR}/data/benchmark.${mode}.json`);
 }
 
-// allow `node scripts/measure.mjs`
-if (process.argv[1] && process.argv[1].endsWith("measure.mjs")) printTable();
+// allow `node scripts/measure.mjs [mode]`
+if (process.argv[1] && process.argv[1].endsWith("measure.mjs"))
+  printTable(process.argv[2]);
