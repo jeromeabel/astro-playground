@@ -167,47 +167,16 @@ function overlaySvg(style, caption, w, h) {
     shape-rendering="crispEdges">${OVERLAY_STYLES[style](caption, w, h)}</svg>`;
 }
 
-async function picsumBuffer(item) {
-  const path = item.picsumId ? `id/${item.picsumId}` : `seed/${item.id}`;
-  const url = `https://picsum.photos/${path}/${SRC_W}/${SRC_H}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`picsum fetch ${item.id} failed: ${res.status}`);
-  return Buffer.from(await res.arrayBuffer());
-}
-
-// Offline fallback: deterministic gradient + fractal noise so overlays still work
-// when picsum is unreachable. Seed is the item index, not Math.random().
-function tint(i) {
-  const hue = (i * 36) % 360;
-  return { from: `hsl(${hue} 60% 45%)`, to: `hsl(${(hue + 40) % 360} 60% 25%)` };
-}
-function plasmaSvg(i) {
-  const { from, to } = tint(i);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${SRC_W}" height="${SRC_H}">
-    <defs>
-      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="${from}"/>
-        <stop offset="1" stop-color="${to}"/>
-      </linearGradient>
-      <filter id="n">
-        <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="${i}"/>
-        <feColorMatrix type="saturate" values="0"/>
-        <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
-      </filter>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#g)"/>
-    <rect width="100%" height="100%" filter="url(#n)" opacity="0.55"/>
-  </svg>`;
-}
-
-async function baseBuffer(item, i) {
-  try {
-    return await picsumBuffer(item);
-  } catch (err) {
-    const why = err.cause?.code || err.message;
-    console.warn(`  ⚠ ${item.id}: picsum unavailable (${why}) — offline plasma base`);
-    return sharp(Buffer.from(plasmaSvg(i))).jpeg({ quality: 90 }).toBuffer();
+const ORIGINAL_DIR = join(SRC_DIR, "original");
+async function originalBuffer(item) {
+  const f = join(ORIGINAL_DIR, `${item.id}.jpg`);
+  if (!existsSync(f)) {
+    throw new Error(
+      `missing original for ${item.id}: ${f}\n` +
+        `run \`pnpm fetch:originals\` once (raw originals are committed, not re-fetched on build)`,
+    );
   }
+  return readFile(f);
 }
 
 async function buildItem(item, i, force = false) {
@@ -223,8 +192,8 @@ async function buildItem(item, i, force = false) {
   if (!force && existsSync(out)) {
     base = await readFile(out);
   } else {
-    base = await sharp(await baseBuffer(item, i))
-      .resize(SRC_W, SRC_H)
+    base = await sharp(await originalBuffer(item))
+      .resize(SRC_W, SRC_H) // normalize any original aspect/size → 3:2 2400px
       .composite([{ input: Buffer.from(overlaySvg(style, item.caption, SRC_W, SRC_H)) }])
       .jpeg({ quality: 90 })
       .toBuffer();
