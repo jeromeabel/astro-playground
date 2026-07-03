@@ -1,55 +1,83 @@
 {
   "mode": "mobile",
-  "generatedAt": "2026-07-01T09:16:21.070Z",
+  "generatedAt": "2026-07-03T20:05:03.730Z",
   "rows": [
     {
       "strategy": "naive",
       "runs": 5,
-      "lcpMs": 2204,
+      "lcpMs": 2299,
+      "lcpMinMs": 2196,
+      "lcpMaxMs": 5648,
       "cls": 0,
-      "bytes": 9354927
+      "bytes": 9354957,
+      "imageBytes": 9343402,
+      "dpl": "6a4812fded72650008c54b34"
     },
     {
       "strategy": "manual",
       "runs": 5,
-      "lcpMs": 1932,
+      "lcpMs": 1308,
+      "lcpMinMs": 1290,
+      "lcpMaxMs": 1333,
       "cls": 0,
-      "bytes": 1304525
+      "bytes": 1304484,
+      "imageBytes": 1292839,
+      "dpl": "6a4812fded72650008c54b34"
     },
     {
       "strategy": "auto",
       "runs": 5,
-      "lcpMs": 1150,
+      "lcpMs": 1119,
+      "lcpMinMs": 1108,
+      "lcpMaxMs": 1173,
       "cls": 0,
-      "bytes": 673783
+      "bytes": 673818,
+      "imageBytes": 660867,
+      "dpl": "6a4812fded72650008c54b34"
     },
     {
       "strategy": "pixel-perfect",
       "runs": 5,
-      "lcpMs": 1214,
+      "lcpMs": 2038,
+      "lcpMinMs": 1121,
+      "lcpMaxMs": 3531,
       "cls": 0,
-      "bytes": 1025391
+      "bytes": 1025530,
+      "imageBytes": 1012809,
+      "dpl": "6a4812fded72650008c54b34"
     },
     {
       "strategy": "lqip",
       "runs": 5,
-      "lcpMs": 1303,
+      "lcpMs": 1644,
+      "lcpMinMs": 1413,
+      "lcpMaxMs": 1657,
       "cls": 0,
-      "bytes": 685562
+      "bytes": 679189,
+      "imageBytes": 660872,
+      "dpl": "6a4812fded72650008c54b34"
     },
     {
       "strategy": "cropped",
       "runs": 5,
-      "lcpMs": 1425,
+      "lcpMs": 1127,
+      "lcpMinMs": 1116,
+      "lcpMaxMs": 1428,
       "cls": 0,
-      "bytes": 688203
+      "bytes": 688196,
+      "imageBytes": 675197,
+      "dpl": "6a4812fded72650008c54b34"
     },
     {
       "strategy": "final",
       "runs": 5,
-      "lcpMs": 2346,
+      "lcpMs": 1440,
+      "lcpMinMs": 1412,
+      "lcpMaxMs": 2640,
       "cls": 0,
-      "bytes": 980755
+      "bytes": 974344,
+      "imageBytes": 956274,
+      "dpl": "6a4812fded72650008c54b34"
     }
   ]
 }
