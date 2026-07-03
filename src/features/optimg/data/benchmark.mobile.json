@@ -1,55 +1,55 @@
 {
-  "mode": "desktop",
-  "generatedAt": "2026-07-01T09:25:04.752Z",
+  "mode": "mobile",
+  "generatedAt": "2026-07-01T09:16:21.070Z",
   "rows": [
     {
       "strategy": "naive",
       "runs": 5,
-      "lcpMs": 553,
-      "cls": 0.004,
-      "bytes": 9354949
+      "lcpMs": 2204,
+      "cls": 0,
+      "bytes": 9354927
     },
     {
       "strategy": "manual",
       "runs": 5,
-      "lcpMs": 375,
+      "lcpMs": 1932,
       "cls": 0,
-      "bytes": 921523
+      "bytes": 1304525
     },
     {
       "strategy": "auto",
       "runs": 5,
-      "lcpMs": 406,
+      "lcpMs": 1150,
       "cls": 0,
-      "bytes": 746645
+      "bytes": 673783
     },
     {
       "strategy": "pixel-perfect",
       "runs": 5,
-      "lcpMs": 336,
+      "lcpMs": 1214,
       "cls": 0,
-      "bytes": 239987
+      "bytes": 1025391
     },
     {
       "strategy": "lqip",
       "runs": 5,
-      "lcpMs": 452,
+      "lcpMs": 1303,
       "cls": 0,
-      "bytes": 758463
+      "bytes": 685562
     },
     {
       "strategy": "cropped",
       "runs": 5,
-      "lcpMs": 466,
+      "lcpMs": 1425,
       "cls": 0,
-      "bytes": 816569
+      "bytes": 688203
     },
     {
       "strategy": "final",
       "runs": 5,
-      "lcpMs": 390,
+      "lcpMs": 2346,
       "cls": 0,
-      "bytes": 251815
+      "bytes": 980755
     }
   ]
 }
