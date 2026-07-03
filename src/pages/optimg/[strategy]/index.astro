@@ -1,7 +1,7 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
-import DemoImage from "@optimg/components/DemoImage.astro";
+import CustomImage from "@optimg/components/CustomImage.astro";
 import { gallery } from "@optimg/data/gallery";
 import { STRATEGIES, STRATEGY_IDS, type Strategy } from "@optimg/lib/strategies";
 import { imgOf } from "@optimg/lib/demo-images";
@@ -35,7 +35,7 @@ const meta = STRATEGIES.find((s) => s.id === strategy);
       {gallery.map((item, i) => (
         <li class="overflow-hidden rounded-lg" data-img-card>
           <a href={`/optimg/${strategy}/${item.id}`} class="block">
-            <DemoImage item={item} strategy={strategy} type="thumb" image={imgOf(item.id)} index={i} />
+            <CustomImage item={item} strategy={strategy} type="thumb" image={imgOf(item.id)} index={i} />
           </a>
         </li>
       ))}

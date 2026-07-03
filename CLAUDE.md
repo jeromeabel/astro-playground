@@ -37,7 +37,7 @@ over pixel-perfect token widths. Natural 3:2 by default; per-image crop is opt-i
 and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thumb).
 
 - **Feature folder:** all optimg-only code is collocated under
-  `src/features/optimg/` — `components/DemoImage.astro`, `lib/{sizes,strategies,demo-images}.ts`,
+  `src/features/optimg/` — `components/CustomImage.astro`, `lib/{sizes,strategies,demo-images}.ts`,
   `scripts/{img-audit,reveal-img}.ts`, and `data/{gallery.json,gallery.ts,benchmark.json}`.
   Only the routes live in `src/pages/optimg/` (Astro requires it); the image
   *sources* stay in `src/assets/optimg/` (absolute glob + generator depend on it).
@@ -50,11 +50,12 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   uses `sharp` to produce sources in `src/assets/optimg/` and hand-cut widths + blur
   in `public/manual/`. All 20 sources are committed; `public/manual/` files are
   git-ignored and reproduced on demand.
-- **Rendering:** `src/features/optimg/components/DemoImage.astro` switches on
-  `strategy`. `sizes` strings **and** the pixel-perfect/`final` `widths` come from
-  `src/features/optimg/lib/sizes.ts`, which is a derive-only pipeline:
+- **Rendering:** `src/features/optimg/components/CustomImage.astro` reads a resolved
+  `Options` bundle (from `STRATEGY_PRESETS` in `lib/presets.ts`, via `resolveOptions()`)
+  — no `strategy ===` switch. `sizes` strings **and** the pixel-perfect/`final` `widths`
+  come from `src/features/optimg/lib/sizes.ts`, which is a derive-only pipeline:
   `layout` (the only literals) → `slot()`/`retina()` → `slots` (named integer map)
-  → `exact`/`approx` bundles, each keyed `grid`/`cover`. `DemoImage` picks a context
+  → `exact`/`approx` bundles, each keyed `grid`/`cover`. `CustomImage` picks a context
   once (`const ctx = isCover ? "cover" : "grid"`) and reads `approx[ctx]` (vw "good
   enough") or `exact[ctx].{sizes,widths,width}` (pixel-perfect). An explicit `widths`
   prop is kept by Astro's `||=`, so the served file lands on the slot at 1x and 2x
@@ -66,7 +67,7 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   `naive` emits a bare `<img>` with **no** `loading` attr → browser-default eager,
   so all 20 thumbs fetch upfront. That eager-all is the intended worst case `naive`
   teaches, not a bug. Guarded by a data-driven Container-API test over
-  `STRATEGY_IDS` in `__tests__/DemoImage.test.ts` (Task D). Runtime check: `pnpm dev`,
+  `STRATEGY_IDS` in `__tests__/CustomImage.test.ts` (Task D). Runtime check: `pnpm dev`,
   DevTools Network + throttle, scroll `/optimg/final` (thumbs fetch on scroll) vs
   `/optimg/naive` (all 20 upfront).
 - **Config:** `astro.config.mjs` sets `image.responsiveStyles: true` (required for
