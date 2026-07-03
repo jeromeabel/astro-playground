@@ -90,7 +90,7 @@ const position = (doCrop && opts.pixelPerfect) ? "top" : undefined; // final set
 // file's real fs path, exposed by astro:assets as the non-enumerable
 // `fsPath` on ImageMetadata (not in its public type, hence the cast).
 let placeholder: string | undefined;
-if (opts.placeholder === "lqip" && image) {
+if (opts.placeholder === "lqip" && opts.source === "picture" && image) {
   const [aw, ah] = doCrop ? [cropW, cropH] : [3, 2];
   const fsPath = (image as unknown as { fsPath: string }).fsPath;
   const srcBuffer = await readFile(fsPath);
@@ -125,7 +125,10 @@ const pictureAttributes = opts.debug ? { "data-optimg-debug": "true" } : {};
 
 // Placeholder box behind the <Picture>: "none" renders nothing extra;
 // "skeleton" is a static grey box; "lqip" is the inlined base64 blurred <img>
-// built above, with the cache-guarded fade wired via `fade`.
+// built above, with the cache-guarded fade wired via `fade`. Composability
+// boundary: `animation`/`placeholder` only have a visible effect when
+// `source:"picture"` — "raw"/"public" sources render a bare <img> and ignore
+// most Options fields.
 const showSkeleton = opts.source === "picture" && opts.placeholder === "skeleton";
 const showLqip = opts.source === "picture" && opts.placeholder === "lqip" && placeholder !== undefined;
 
