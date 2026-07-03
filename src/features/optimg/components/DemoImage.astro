@@ -31,6 +31,13 @@ function isAboveFold(i: number | undefined): boolean {
 const isCover = type === "cover";
 const isLCP = !isCover && index === 0;
 const loading = (isCover || isAboveFold(index)) ? "eager" : "lazy";
+// Don't animate the above-fold/LCP element: a live Lighthouse check (Task 5
+// check 6) confirmed the browser discounts the low-entropy 32px placeholder
+// as an LCP candidate every run — LCP always resolves to the real streaming
+// <img>, so its opacity:0 fade directly delays LCP. Eager (above-fold/cover)
+// images snap — the placeholder still paints behind them until the real
+// image decodes. Only lazy below-fold images get the JS fade.
+const fade = loading === "lazy";
 // fetchpriority="high" is a scalpel — exactly one element (the LCP). Spreading
 // it across the whole above-fold row dilutes the signal and hurts LCP.
 const fetchpriority = (isCover || isLCP) ? "high" : "auto";
@@ -162,11 +169,11 @@ if ((strategy === "lqip" || strategy === "final") && image) {
 
 {
   strategy === "lqip" && image && (
-    /* separate 32px blurred <img> behind a real <Picture> that starts invisible
-       and fades in on load (reveal-img.ts, cache-guarded). The placeholder is its
-       own positioned box, so it paints the full slot on the first frame — LCP fires
-       on it instead of the streaming file. */
-    <div class="reveal-img relative overflow-hidden">
+    /* separate 32px blurred <img> behind a real <Picture>. Below-fold cards fade
+       the real image in on load (reveal-img.ts, cache-guarded); the above-fold/LCP
+       card snaps instead — Chrome discounts the low-entropy placeholder as an LCP
+       candidate, so a fade there would delay LCP, not hide behind it. */
+    <div class={fade ? "reveal-img relative overflow-hidden" : "relative overflow-hidden"}>
       <img
         class="absolute inset-0 -z-10 h-full w-full object-cover blur-2xl"
         aria-hidden="true"
@@ -179,7 +186,7 @@ if ((strategy === "lqip" || strategy === "final") && image) {
         {...baseProps}
         width={width}
         sizes={autoSizes}
-        pictureAttributes={{ style: "opacity:0" }}
+        pictureAttributes={fade ? { style: "opacity:0" } : {}}
       />
     </div>
   )
@@ -191,7 +198,7 @@ if ((strategy === "lqip" || strategy === "final") && image) {
        pixel-perfect <Picture> (token widths land the file on the slot, no
        resampling). Natural 3:2 by default; optional per-context crop (16:9 cover
        / 4:3 thumb) when item.crop is set. */
-    <div class="reveal-img relative overflow-hidden">
+    <div class={fade ? "reveal-img relative overflow-hidden" : "relative overflow-hidden"}>
       <img
         class="absolute inset-0 -z-10 h-full w-full object-cover blur-2xl"
         aria-hidden="true"
@@ -208,7 +215,7 @@ if ((strategy === "lqip" || strategy === "final") && image) {
         fit={finalCrop ? "cover" : undefined}
         position={finalCrop ? "top" : undefined}
         sizes={ppSizes}
-        pictureAttributes={{ style: "opacity:0" }}
+        pictureAttributes={fade ? { style: "opacity:0" } : {}}
       />
     </div>
   )
