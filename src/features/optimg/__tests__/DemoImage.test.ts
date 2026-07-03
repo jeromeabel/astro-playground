@@ -1,16 +1,23 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { passthroughImageService } from 'astro/config';
+import { fileURLToPath } from 'node:url';
 import type { ImageMetadata } from 'astro';
 import DemoImage from '../components/DemoImage.astro';
 import { gallery } from '../data/gallery';
 import { STRATEGY_IDS } from '../lib/strategies';
 
+// `fsPath` isn't in the public ImageMetadata type (it's a non-enumerable
+// runtime property astro:assets attaches to real ESM image imports), but
+// DemoImage reads it to build the inline base64 LQIP placeholder — point it
+// at the real committed source so the Container API render can actually run
+// sharp over it.
 const fakeImage = {
   src: '/src/assets/optimg/photo-01.jpg',
   width: 1280,
   height: 853,
   format: 'jpg',
+  fsPath: fileURLToPath(new URL('../../../assets/optimg/photo-01.jpg', import.meta.url)),
 } as ImageMetadata;
 
 const item = gallery[0]; // photo-01

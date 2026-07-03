@@ -1,5 +1,7 @@
 ---
-import { Picture, getImage } from "astro:assets";
+import { readFile } from "node:fs/promises";
+import sharp from "sharp";
+import { Picture } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import type { GalleryItem } from "@optimg/data/gallery";
 import type { Strategy } from "@optimg/lib/strategies";
@@ -69,18 +71,24 @@ const [cropW, cropH] = isCover ? [16, 9] : [4, 3];
 const finalHeight = finalCrop ? Math.round((ppWidth * cropH) / cropW) : undefined;
 
 // LQIP/final: build a tiny blurred placeholder at build time, matching the
-// displayed aspect so it doesn't distort behind the real image.
+// displayed aspect so it doesn't distort behind the real image. Inlined as a
+// base64 data: URI (not a getImage() URL) so it paints on the first frame with
+// zero network requests — getImage()'s emitted asset isn't written to disk
+// until Astro's post-render image-generation pass, so there's no file to read
+// yet at this point in the pipeline. Instead we go straight to sharp (already
+// a dependency, same library Astro's own image service uses) over the source
+// file's real fs path, exposed by astro:assets as the non-enumerable
+// `fsPath` on ImageMetadata (not in its public type, hence the cast).
 let placeholder: string | undefined;
 if ((strategy === "lqip" || strategy === "final") && image) {
   const [aw, ah] = finalCrop ? [cropW, cropH] : [3, 2];
-  const lq = await getImage({
-    src: image,
-    width: 32,
-    height: Math.round((32 * ah) / aw),
-    format: "webp",
-    ...(finalCrop ? { fit: "cover" } : {}),
-  });
-  placeholder = lq.src;
+  const fsPath = (image as unknown as { fsPath: string }).fsPath;
+  const srcBuffer = await readFile(fsPath);
+  const lqBuffer = await sharp(srcBuffer)
+    .resize(32, Math.round((32 * ah) / aw), finalCrop ? { fit: "cover" } : undefined)
+    .webp()
+    .toBuffer();
+  placeholder = `data:image/webp;base64,${lqBuffer.toString("base64")}`;
 }
 ---
 
