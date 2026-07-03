@@ -1,83 +1,83 @@
 {
   "mode": "mobile",
-  "generatedAt": "2026-07-03T20:05:03.730Z",
+  "generatedAt": "2026-07-03T21:12:39.850Z",
   "rows": [
     {
       "strategy": "naive",
       "runs": 5,
-      "lcpMs": 2299,
-      "lcpMinMs": 2196,
-      "lcpMaxMs": 5648,
+      "lcpMs": 28926,
+      "lcpMinMs": 28911,
+      "lcpMaxMs": 28939,
       "cls": 0,
-      "bytes": 9354957,
-      "imageBytes": 9343402,
-      "dpl": "6a4812fded72650008c54b34"
+      "bytes": 9352995,
+      "imageBytes": 9343449,
+      "dpl": "6a481ca8c05f340008a9ef55"
     },
     {
       "strategy": "manual",
       "runs": 5,
-      "lcpMs": 1308,
-      "lcpMinMs": 1290,
-      "lcpMaxMs": 1333,
+      "lcpMs": 6535,
+      "lcpMinMs": 6532,
+      "lcpMaxMs": 6577,
       "cls": 0,
-      "bytes": 1304484,
-      "imageBytes": 1292839,
-      "dpl": "6a4812fded72650008c54b34"
+      "bytes": 1187442,
+      "imageBytes": 1175496,
+      "dpl": "6a481ca8c05f340008a9ef55"
     },
     {
       "strategy": "auto",
       "runs": 5,
-      "lcpMs": 1119,
-      "lcpMinMs": 1108,
-      "lcpMaxMs": 1173,
+      "lcpMs": 3797,
+      "lcpMinMs": 3794,
+      "lcpMaxMs": 3843,
       "cls": 0,
-      "bytes": 673818,
-      "imageBytes": 660867,
-      "dpl": "6a4812fded72650008c54b34"
+      "bytes": 624545,
+      "imageBytes": 611533,
+      "dpl": "6a481ca8c05f340008a9ef55"
     },
     {
       "strategy": "pixel-perfect",
       "runs": 5,
-      "lcpMs": 2038,
-      "lcpMinMs": 1121,
-      "lcpMaxMs": 3531,
+      "lcpMs": 4493,
+      "lcpMinMs": 4474,
+      "lcpMaxMs": 4503,
       "cls": 0,
-      "bytes": 1025530,
-      "imageBytes": 1012809,
-      "dpl": "6a4812fded72650008c54b34"
+      "bytes": 948034,
+      "imageBytes": 935334,
+      "dpl": "6a481ca8c05f340008a9ef55"
     },
     {
       "strategy": "lqip",
       "runs": 5,
-      "lcpMs": 1644,
-      "lcpMinMs": 1413,
-      "lcpMaxMs": 1657,
+      "lcpMs": 3844,
+      "lcpMinMs": 3826,
+      "lcpMaxMs": 4225,
       "cls": 0,
-      "bytes": 679189,
-      "imageBytes": 660872,
-      "dpl": "6a4812fded72650008c54b34"
+      "bytes": 630028,
+      "imageBytes": 611545,
+      "dpl": "6a481ca8c05f340008a9ef55"
     },
     {
       "strategy": "cropped",
       "runs": 5,
-      "lcpMs": 1127,
-      "lcpMinMs": 1116,
-      "lcpMaxMs": 1428,
+      "lcpMs": 3607,
+      "lcpMinMs": 3529,
+      "lcpMaxMs": 3626,
       "cls": 0,
-      "bytes": 688196,
-      "imageBytes": 675197,
-      "dpl": "6a4812fded72650008c54b34"
+      "bytes": 611819,
+      "imageBytes": 598590,
+      "dpl": "6a481ca8c05f340008a9ef55"
     },
     {
       "strategy": "final",
       "runs": 5,
-      "lcpMs": 1440,
-      "lcpMinMs": 1412,
-      "lcpMaxMs": 2640,
+      "lcpMs": 4248,
+      "lcpMinMs": 4166,
+      "lcpMaxMs": 4271,
       "cls": 0,
-      "bytes": 974344,
-      "imageBytes": 956274,
-      "dpl": "6a4812fded72650008c54b34"
+      "bytes": 953418,
+      "imageBytes": 935310,
+      "dpl": "6a481ca8c05f340008a9ef55"
     }
   ]
 }

@@ -37,6 +37,12 @@ export function runLighthouse(strategy, baseUrl = "http://localhost:4321", mode 
       "--quiet",
     ];
     if (mode === "desktop") args.splice(3, 0, "--preset=desktop");
+    // Lantern's simulated-throttling LCP is a trace extrapolation, not a direct
+    // measurement — it nonlinearly amplifies real scheduling jitter for
+    // strategies with longer critical-path chains (e.g. an extra Netlify Image
+    // transform hop), producing a bimodal spread unrelated to actual performance.
+    // devtools throttling paces the real network/CPU instead of simulating it.
+    if (mode === "mobile") args.splice(3, 0, "--throttling-method=devtools");
     const res = spawnSync("pnpm", args, { stdio: "inherit", cwd: root });
     if (res.status !== 0) {
       throw new Error(`lighthouse failed for ${mode} ${strategy} run ${run}`);
