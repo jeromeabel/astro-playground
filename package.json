@@ -6,6 +6,7 @@
     "dev": "astro dev",
     "start": "astro dev",
     "gen:optimg": "node scripts/gen-images.mjs",
+    "fetch:originals": "node scripts/fetch-originals.mjs",
     "build": "pnpm gen:optimg && astro check && astro build",
     "preview": "serve dist -p 4321",
     "lighthouse:naive": "node scripts/lighthouse.mjs naive",

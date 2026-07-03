@@ -140,9 +140,9 @@
     "overlay": "e",
     "source": "picsum",
     "alt": "Landscape photograph, sample 16",
-    "caption": "Black puppy on planks",
-    "author": "André Spieker",
-    "authorUrl": "https://unsplash.com/photos/8wTPqxlnKM4"
+    "caption": "Dog under a wooden bench",
+    "author": "Pew Nguyen",
+    "authorUrl": "https://unsplash.com/photos/RsN9wIjZh-s"
   },
   {
     "id": "photo-17",
@@ -176,17 +176,17 @@
     "overlay": "d",
     "source": "picsum",
     "alt": "Landscape photograph, sample 20",
-    "caption": "Surfboard at sunset",
-    "author": "Joschko Hammermann",
-    "authorUrl": "https://unsplash.com/photos/eHtM8lZrU2A"
+    "caption": "Ocean City sunset surfing",
+    "author": "asaf",
+    "authorUrl": "https://unsplash.com/photos/d1FZlcQM9uE"
   },
   {
     "id": "photo-21",
     "overlay": "d",
     "source": "picsum",
     "alt": "Landscape photograph, sample 21",
-    "caption": "Alpine meadow, noon",
-    "author": "John Price",
-    "authorUrl": "https://unsplash.com/photos/rPXDYNQJ7ZA"
+    "caption": "Grass field near green mountains",
+    "author": "Lukas Gächter",
+    "authorUrl": "https://unsplash.com/photos/gEhv8fe8lVo"
   }
 ]
