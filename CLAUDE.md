@@ -47,9 +47,12 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   `gallery.ts` beside it). Both the generator and the routes read it, so the
   dataset never drifts.
 - **Generator:** `scripts/gen-images.mjs` (`pnpm gen:optimg`, runs before `build`)
-  uses `sharp` to produce sources in `src/assets/optimg/` and hand-cut widths + blur
-  in `public/manual/`. All 20 sources are committed; `public/manual/` files are
-  git-ignored and reproduced on demand.
+  uses `sharp` to derive both `src/assets/optimg/` sources and hand-cut widths + blur
+  in `public/manual/` from the committed raw originals in
+  `src/assets/optimg/original/` — **no build-time network**. The old picsum fetch +
+  offline-plasma fallback is gone; if an original is missing, the generator errors
+  out and tells you to run `pnpm fetch:originals`. See **Dataset is all free** below
+  for the full reproducibility tiering.
 - **Rendering:** `src/features/optimg/components/CustomImage.astro` reads a resolved
   `Options` bundle (from `STRATEGY_PRESETS` in `lib/presets.ts`, via `resolveOptions()`)
   — no `strategy ===` switch. `sizes` strings **and** the pixel-perfect/`final` `widths`
@@ -128,6 +131,18 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   (comma list, validated); `FORCE=all` or `FORCE=1` re-bakes everything.
   Re-test a style: `OVERLAY=b FORCE=all pnpm gen:optimg`.
   The pre-2026-06-23 procedural generator is kept at `scripts/backup/gen-images-generated.mjs`.
+- **Reproducibility tiers** — three stages, each with a different regeneration story:
+
+  | Tier | Path | Committed? | How it's (re)made |
+  |------|------|------------|--------------------|
+  | Raw input | `src/assets/optimg/original/<id>.jpg` | yes | Fetched once via `pnpm fetch:originals` (Unsplash API, Unsplash License); never re-downloaded on rebuild. Re-fetch a specific id with `FORCE=photo-04,photo-05 pnpm fetch:originals`, or all with `FORCE=all`. |
+  | Derived source | `src/assets/optimg/<id>.jpg` | yes | Baked by `pnpm gen:optimg` from the matching `original/<id>.jpg` — normalized to 3:2, overlay label applied. Deterministic given the same original + `gallery.json`, so builds don't need to re-bake; CI doesn't need to run the generator to get a working checkout. |
+  | Manual widths + blur | `public/manual/*.jpg` | no (git-ignored) | Derived from the `src/assets/optimg/<id>.jpg` tier by `pnpm gen:optimg`, which runs before `build`. |
+
+  `gen-images.mjs` itself does **no build-time network** — the picsum-fetch-at-build-time
+  and offline-plasma-fallback paths from the old generator are gone; it only ever reads
+  from the committed `original/` tier. If an original is missing it errors out rather than
+  silently substituting a placeholder.
 - **Running Astro 7.0.0** (`^7.0.0` in package.json).
 
 ## Conventions
