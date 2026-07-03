@@ -1,7 +1,7 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
-import DemoImage from "@optimg/components/DemoImage.astro";
+import CustomImage from "@optimg/components/CustomImage.astro";
 import { gallery, type GalleryItem } from "@optimg/data/gallery";
 import { STRATEGIES, STRATEGY_IDS, type Strategy } from "@optimg/lib/strategies";
 import { imgOf } from "@optimg/lib/demo-images";
@@ -34,7 +34,7 @@ const meta = STRATEGIES.find((s) => s.id === strategy);
 
     <figure class="space-y-2">
       <div class="overflow-hidden rounded-lg" data-img-card>
-        <DemoImage item={item} strategy={strategy} type="cover" image={image} />
+        <CustomImage item={item} strategy={strategy} type="cover" image={image} />
       </div>
       <figcaption class="text-sm text-zinc-600 dark:text-zinc-400">
         overlay: {item.overlay} · strategy: {strategy} · Photo by <a href={item.authorUrl} target="_blank" rel="noopener noreferrer" class="underline hover:text-zinc-900 dark:hover:text-zinc-100">{item.author}</a> on Unsplash
