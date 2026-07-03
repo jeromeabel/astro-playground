@@ -245,8 +245,55 @@ describe('CustomImage — Layer 2 Container API', () => {
     expect(html).not.toContain('aria-hidden');
   });
 
-  // placeholder:"lqip" data-URI (base64) inlining is Task 4 — deferred here.
-  it.todo('placeholder:"lqip" inlines a base64 data:image/webp;base64 blurred placeholder');
+  it('placeholder:"lqip" inlines a data:image/webp;base64 placeholder (no /.netlify/images w=32)', async () => {
+    const html = await container.renderToString(CustomImage, {
+      props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('lqip') },
+    });
+    // The aria-hidden placeholder <img> itself must be an inline data: URI —
+    // not a fetched /.netlify/images?...&w=32 transform. The real <Picture>
+    // legitimately still emits /.netlify/images URLs in its own srcset, so
+    // scope the "no netlify URL" check to the placeholder tag specifically.
+    const placeholderImgTag = html.match(/<img[^>]*aria-hidden="true"[^>]*>/)?.[0] ?? '';
+    expect(placeholderImgTag).toMatch(/src="data:image\/webp;base64,[^"]+"/);
+    expect(placeholderImgTag).not.toContain('/.netlify/images');
+    expect(placeholderImgTag).not.toContain('w=32');
+  });
+
+  it('animation:true + below-fold → reveal-img class + picture opacity:0', async () => {
+    const html = await container.renderToString(CustomImage, {
+      props: { item, type: 'thumb', image: fakeImage, index: 99, options: resolveOptions('lqip') },
+    });
+    expect(html).toContain('reveal-img');
+    expect(html).toContain('opacity:0');
+  });
+
+  it('animation:false → no reveal-img, no opacity:0 (composable off switch)', async () => {
+    const html = await container.renderToString(CustomImage, {
+      props: {
+        item,
+        type: 'thumb',
+        image: fakeImage,
+        index: 99,
+        options: resolveOptions('lqip', { animation: false }),
+      },
+    });
+    expect(html).not.toContain('reveal-img');
+    expect(html).not.toContain('opacity:0');
+  });
+
+  it('animation:true + aboveFold:true respects ABOVE_FOLD_FADE (fade absent, since the constant is false)', async () => {
+    const html = await container.renderToString(CustomImage, {
+      props: {
+        item,
+        type: 'thumb',
+        image: fakeImage,
+        options: resolveOptions('lqip', { aboveFold: true }),
+      },
+    });
+    expect(html).toMatch(/src="data:image\/webp;base64,[^"]+"/);
+    expect(html).not.toContain('reveal-img');
+    expect(html).not.toContain('opacity:0');
+  });
 
   it('debug:true adds the data-optimg-debug hook attribute (picture source)', async () => {
     const html = await container.renderToString(CustomImage, {
