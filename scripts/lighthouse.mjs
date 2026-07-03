@@ -7,6 +7,7 @@ import { FEATURE } from "./config.mjs";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(root, "scripts/lh");
 const RUNS = 5; // 5-run median tames single-run noise
+const WARMUP_RUNS = 1; // discarded — primes the CDN edge + transform cache for THIS mode's variants
 
 // mode: "mobile" (Lighthouse default — Moto G Power, Slow 4G, CPU ×4)
 //       "desktop" (--preset=desktop — CPU ×1, 10 Mbps)
@@ -14,9 +15,17 @@ export function runLighthouse(strategy, baseUrl = "http://localhost:4321", mode 
   const outDir = join(OUT_DIR, mode);
   mkdirSync(outDir, { recursive: true });
   const url = `${baseUrl.replace(/\/$/, "")}/${FEATURE}/${strategy}`;
-  for (let run = 1; run <= RUNS; run++) {
-    const out = join(outDir, `${strategy}-${run}.json`);
-    console.log(`lighthouse ${mode} ${strategy} run ${run}/${RUNS} -> ${url}`);
+  for (let run = 1 - WARMUP_RUNS; run <= RUNS; run++) {
+    const isWarmup = run < 1;
+    const out = join(
+      outDir,
+      isWarmup ? `${strategy}-warmup.json` : `${strategy}-${run}.json`,
+    );
+    console.log(
+      isWarmup
+        ? `lighthouse ${mode} ${strategy} warmup (discarded) -> ${url}`
+        : `lighthouse ${mode} ${strategy} run ${run}/${RUNS} -> ${url}`,
+    );
     const args = [
       "dlx",
       "lighthouse@13",
