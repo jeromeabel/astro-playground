@@ -54,7 +54,7 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   out and tells you to run `pnpm fetch:originals`. See **Dataset is all free** below
   for the full reproducibility tiering.
 - **Rendering:** `src/features/optimg/components/CustomImage.astro` reads a resolved
-  `Options` bundle (from `STRATEGY_PRESETS` in `lib/presets.ts`, via `resolveOptions()`)
+  `Options` bundle (from the `StrategyDef` records in `lib/strategies.ts`, via `resolveOptions()`)
   — no `strategy ===` switch. `sizes` strings **and** the pixel-perfect/`final` `widths`
   come from `src/features/optimg/lib/sizes.ts`, which is a derive-only pipeline:
   `layout` (the only literals) → `slot()`/`retina()` → `slots` (named integer map)
