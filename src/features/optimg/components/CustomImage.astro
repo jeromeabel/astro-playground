@@ -4,9 +4,8 @@ import sharp from "sharp";
 import { Picture } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import type { GalleryItem } from "@optimg/data/gallery";
-import type { Strategy } from "@optimg/lib/strategies";
-import type { Options } from "@optimg/lib/presets";
-import { STRATEGY_PRESETS, resolveOptions } from "@optimg/lib/presets";
+import type { Strategy, Options } from "@optimg/lib/strategies";
+import { resolveOptions } from "@optimg/lib/strategies";
 import { exact, approx } from "@optimg/lib/sizes";
 
 interface Props {
@@ -22,11 +21,9 @@ const { item, type, image, index, strategy, options } = Astro.props;
 
 // Routes keep passing `strategy` (minimal churn); tests can pass a raw
 // `options` bundle instead to exercise the option matrix directly. With no
-// strategy, unset fields fall back to the "auto" preset (plain picture, no
-// enhancements) — the same baseline `resolveOptions()` uses internally.
-const opts: Options = strategy
-  ? resolveOptions(strategy, options)
-  : { ...STRATEGY_PRESETS.auto, ...options };
+// strategy, unset fields fall back to the "auto" bundle (plain picture, no
+// enhancements).
+const opts: Options = resolveOptions(strategy ?? "auto", options);
 
 // Viewport is unknown at build time (static prerender, no Client Hints on
 // first nav) so EAGER_AHEAD is a fixed worst-case constant: 6 covers mobile

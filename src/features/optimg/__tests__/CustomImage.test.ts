@@ -6,7 +6,7 @@ import type { ImageMetadata } from 'astro';
 import CustomImage from '../components/CustomImage.astro';
 import { gallery } from '../data/gallery';
 import { STRATEGY_IDS } from '../lib/strategies';
-import { resolveOptions } from '../lib/presets';
+import { resolveOptions } from '../lib/strategies';
 
 // `fsPath` isn't in the public ImageMetadata type (it's a non-enumerable
 // runtime property astro:assets attaches to real ESM image imports), but
