@@ -13,6 +13,8 @@ export type BenchMode = "desktop" | "mobile";
 export interface BenchmarkRowView {
   strategy: string;
   lcpMs: number;
+  lcpMinMs: number | null;
+  lcpMaxMs: number | null;
   cls: number;
   kb: number;
   isBestLcp: boolean;
@@ -44,8 +46,11 @@ export interface BenchmarkView {
 interface RawRow {
   strategy: string;
   lcpMs: number;
+  lcpMinMs?: number;
+  lcpMaxMs?: number;
   cls: number;
   bytes: number;
+  imageBytes?: number;
   runs?: number;
 }
 
@@ -73,18 +78,24 @@ export function analyzeBenchmark(data: unknown, mode: BenchMode): BenchmarkView 
   const runsRow = raw.find((r) => typeof r.runs === "number");
   const runs = runsRow && typeof runsRow.runs === "number" ? runsRow.runs : null;
 
+  // Rank on IMAGE bytes (the deterministic metric the methodology publishes),
+  // falling back to total transfer for older JSON that predates the field.
+  const rowBytes = (r: RawRow) => r.imageBytes ?? r.bytes;
+
   const minLcp = hasData ? Math.min(...raw.map((r) => r.lcpMs)) : null;
   const maxLcp = hasData ? Math.max(...raw.map((r) => r.lcpMs)) : null;
-  const minBytes = hasData ? Math.min(...raw.map((r) => r.bytes)) : null;
+  const minBytes = hasData ? Math.min(...raw.map(rowBytes)) : null;
 
   const rows: BenchmarkRowView[] = raw.map((r) => ({
     strategy: r.strategy,
     lcpMs: r.lcpMs,
+    lcpMinMs: typeof r.lcpMinMs === "number" ? r.lcpMinMs : null,
+    lcpMaxMs: typeof r.lcpMaxMs === "number" ? r.lcpMaxMs : null,
     cls: r.cls,
-    kb: Math.round(r.bytes / 1024),
+    kb: Math.round(rowBytes(r) / 1024),
     isBestLcp: r.lcpMs === minLcp,
     isWorstLcp: r.lcpMs === maxLcp,
-    isBestBytes: r.bytes === minBytes,
+    isBestBytes: rowBytes(r) === minBytes,
   }));
 
   const byStrategy = (id: string): BenchmarkRowView | undefined =>
@@ -94,36 +105,41 @@ export function analyzeBenchmark(data: unknown, mode: BenchMode): BenchmarkView 
   // and every number it carries is DERIVED from the data — no literal
   // percentages or "winner" claims that could drift when the JSON is re-measured.
   // The component (BenchmarkResults.astro) renders the prose keyed by `id`.
+  // Desktop only: the findings' copy states desktop facts ("bytes wins go to
+  // pixel-perfect") that INVERT on mobile, where honest sizing of the
+  // full-width slot makes pixel-perfect one of the heaviest.
   const findings: Finding[] = [];
-  const pp = byStrategy("pixel-perfect");
-  const fin = byStrategy("final");
-  const auto = byStrategy("auto");
-  const lqip = byStrategy("lqip");
-  const naive = byStrategy("naive");
+  if (mode === "desktop") {
+    const pp = byStrategy("pixel-perfect");
+    const fin = byStrategy("final");
+    const auto = byStrategy("auto");
+    const lqip = byStrategy("lqip");
+    const naive = byStrategy("naive");
 
-  const pctUnder = (baseline: number, value: number) =>
-    Math.round(((baseline - value) / baseline) * 100);
+    const pctUnder = (baseline: number, value: number) =>
+      Math.round(((baseline - value) / baseline) * 100);
 
-  if (pp && fin && auto && naive) {
-    findings.push({
-      id: "bytes-winner",
-      ppKb: pp.kb,
-      finalKb: fin.kb,
-      autoKb: auto.kb,
-      pctUnderAuto: pctUnder(auto.kb, pp.kb),
-      pctUnderNaive: pctUnder(naive.kb, pp.kb),
-    });
-  }
-  if (lqip && auto) {
-    findings.push({
-      id: "lqip-lcp",
-      lqipLcp: lqip.lcpMs,
-      autoLcp: auto.lcpMs,
-      deltaMs: lqip.lcpMs - auto.lcpMs,
-    });
-  }
-  if (fin && pp) {
-    findings.push({ id: "final-pick", finalKb: fin.kb, deltaMs: fin.lcpMs - pp.lcpMs });
+    if (pp && fin && auto && naive) {
+      findings.push({
+        id: "bytes-winner",
+        ppKb: pp.kb,
+        finalKb: fin.kb,
+        autoKb: auto.kb,
+        pctUnderAuto: pctUnder(auto.kb, pp.kb),
+        pctUnderNaive: pctUnder(naive.kb, pp.kb),
+      });
+    }
+    if (lqip && auto) {
+      findings.push({
+        id: "lqip-lcp",
+        lqipLcp: lqip.lcpMs,
+        autoLcp: auto.lcpMs,
+        deltaMs: lqip.lcpMs - auto.lcpMs,
+      });
+    }
+    if (fin && pp) {
+      findings.push({ id: "final-pick", finalKb: fin.kb, deltaMs: fin.lcpMs - pp.lcpMs });
+    }
   }
 
   return {

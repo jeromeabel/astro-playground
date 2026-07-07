@@ -15,16 +15,16 @@ const { view, compare } = Astro.props;
 ---
 
 <section class="space-y-3">
-  <h2 class="text-lg font-semibold">Measured results — desktop</h2>
+  <h2 class="text-lg font-semibold">Measured results — {view.mode}</h2>
   {view.hasData ? (
     <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-zinc-200 text-left dark:border-zinc-800">
             <th class="px-4 py-2 font-medium">Strategy</th>
-            <th class="px-4 py-2 font-medium">LCP (ms)</th>
+            <th class="px-4 py-2 font-medium">LCP med (min–max) ms</th>
             <th class="px-4 py-2 font-medium">CLS</th>
-            <th class="px-4 py-2 font-medium">Bytes (KB)</th>
+            <th class="px-4 py-2 font-medium">Image bytes (KB)</th>
           </tr>
         </thead>
         <tbody>
@@ -35,6 +35,9 @@ const { view, compare } = Astro.props;
               </td>
               <td class={`px-4 py-2 tabular-nums ${r.isBestLcp ? "font-semibold text-emerald-600 dark:text-emerald-400" : r.isWorstLcp ? "text-red-500 dark:text-red-400" : ""}`}>
                 {r.lcpMs}
+                {r.lcpMinMs != null && r.lcpMaxMs != null && (
+                  <span class="ml-1 text-xs text-zinc-400 dark:text-zinc-600">({r.lcpMinMs}–{r.lcpMaxMs})</span>
+                )}
                 {r.isBestLcp && <span class="ml-1 text-xs">↑</span>}
               </td>
               <td class="px-4 py-2 tabular-nums">{r.cls.toFixed(3)}</td>
@@ -49,8 +52,8 @@ const { view, compare } = Astro.props;
     </div>
   ) : (
     <p class="text-sm text-zinc-600 dark:text-zinc-400">
-      No measurements yet — run <code>pnpm benchmark:optimg</code> against
-      <code>netlify serve</code> to populate this table.
+      No measurements yet — run <code>pnpm benchmark:optimg</code> against the
+      live deploy (warm runs, one <code>dpl</code>) to populate this table.
     </p>
   )}
   <p class="text-xs text-zinc-500 dark:text-zinc-500">

@@ -9,8 +9,8 @@ const view: BenchmarkView = {
   runs: 5,
   hasData: true,
   rows: [
-    { strategy: 'naive', lcpMs: 526, cls: 0.004, kb: 9136, isBestLcp: true, isWorstLcp: false, isBestBytes: false },
-    { strategy: 'final', lcpMs: 720, cls: 0.004, kb: 278, isBestLcp: false, isWorstLcp: true, isBestBytes: true },
+    { strategy: 'naive', lcpMs: 526, lcpMinMs: 506, lcpMaxMs: 533, cls: 0.004, kb: 9136, isBestLcp: true, isWorstLcp: false, isBestBytes: false },
+    { strategy: 'final', lcpMs: 720, lcpMinMs: null, lcpMaxMs: null, cls: 0.004, kb: 278, isBestLcp: false, isWorstLcp: true, isBestBytes: true },
   ],
   findings: [
     { id: 'bytes-winner', ppKb: 273, finalKb: 278, autoKb: 605, pctUnderAuto: 55, pctUnderNaive: 97 },
@@ -42,7 +42,8 @@ describe('BenchmarkResults', () => {
     const html = await container.renderToString(BenchmarkResults, { props: { view } });
     expect(html).toContain('href="/optimg/naive"');
     expect(html).toContain('href="/optimg/final"');
-    expect(html).toContain('526');            // lcp cell
+    expect(html).toContain('526');            // lcp median cell
+    expect(html).toContain('(506–533)');       // min–max dispersion when present
     expect(html).toContain('0.004');           // cls cell, toFixed(3)
     expect(html).toContain('9136');            // kb cell (pre-rounded by the lib)
     expect(html).toContain('text-emerald-600'); // best flag styling present

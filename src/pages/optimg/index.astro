@@ -7,9 +7,12 @@ import mobileData from "@optimg/data/benchmark.mobile.json";
 import { analyzeBenchmark, compareBenchmarks } from "@optimg/lib/benchmark";
 import { STRATEGIES } from "@optimg/lib/strategies";
 
-// Desktop is the primary table; the desktop↔mobile compare shows the inversion
-// (same strategy, opposite byte ranking) for the three strategies that flip.
+// Desktop table carries the narrative findings; the mobile table is where the
+// story flips (naive at ~29 s, pixel-perfect among the heaviest). The
+// desktop↔mobile compare then shows the inversion (same strategy, opposite
+// byte ranking) for the three strategies that flip.
 const view = analyzeBenchmark(desktopData, "desktop");
+const mobileView = analyzeBenchmark(mobileData, "mobile");
 const compare = compareBenchmarks(desktopData, mobileData, ["auto", "pixel-perfect", "final"]);
 ---
 
@@ -21,8 +24,9 @@ const compare = compareBenchmarks(desktopData, mobileData, ["auto", "pixel-perfe
       <p class="max-w-3xl text-sm text-zinc-600 dark:text-zinc-400">
         One route per technique, from unoptimized to fully optimized. Each renders
         the same 21-image dataset as a responsive grid; each grid item links to a
-        large detail view (the LCP element). Run the Lighthouse harness against
-        <code>netlify serve</code> (port 8888) to compare LCP, CLS, and bytes.
+        large detail view (the LCP element). The Lighthouse harness
+        (<code>pnpm benchmark:optimg</code>) measures the live deploy — warm runs,
+        one <code>dpl</code>, mobile and desktop — to compare image bytes and LCP.
       </p>
     </header>
 
@@ -46,6 +50,7 @@ const compare = compareBenchmarks(desktopData, mobileData, ["auto", "pixel-perfe
       </ul>
     </section>
 
-    <BenchmarkResults view={view} compare={compare} />
+    <BenchmarkResults view={view} />
+    <BenchmarkResults view={mobileView} compare={compare} />
   </main>
 </Layout>

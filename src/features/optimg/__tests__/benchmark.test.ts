@@ -30,7 +30,8 @@ describe("analyzeBenchmark — rows", () => {
     expect(view.generatedAt).toBe("2026-07-04T00:04:39.500Z");
     expect(view.runs).toBe(5);
     expect(view.rows).toHaveLength(7);
-    expect(view.rows[0]).toMatchObject({ strategy: "naive", lcpMs: 526, kb: 9136 });
+    // kb comes from imageBytes (bytes - 10_000 in the fixture), not total bytes
+    expect(view.rows[0]).toMatchObject({ strategy: "naive", lcpMs: 526, kb: 9126 });
   });
 
   it("flags best/worst LCP and best bytes", () => {
@@ -53,19 +54,20 @@ describe("analyzeBenchmark — findings", () => {
 
   it("derives percentages and LCP deltas from the data — never literals", () => {
     const view = analyzeBenchmark(FULL, "desktop");
-    // round(280000/1024)=273, round(285000/1024)=278, round(620000/1024)=605,
-    // round(9355024/1024)=9136. pctUnderAuto=round((605-273)/605*100)=55,
-    // pctUnderNaive=round((9136-273)/9136*100)=97.
+    // KB from imageBytes: round(270000/1024)=264, round(275000/1024)=269,
+    // round(610000/1024)=596, round(9345024/1024)=9126.
+    // pctUnderAuto=round((596-264)/596*100)=56,
+    // pctUnderNaive=round((9126-264)/9126*100)=97.
     expect(view.findings).toContainEqual({
-      id: "bytes-winner", ppKb: 273, finalKb: 278, autoKb: 605,
-      pctUnderAuto: 55, pctUnderNaive: 97,
+      id: "bytes-winner", ppKb: 264, finalKb: 269, autoKb: 596,
+      pctUnderAuto: 56, pctUnderNaive: 97,
     });
     // lqip delta = lqip.lcpMs - auto.lcpMs = 900 - 690 = 210
     expect(view.findings).toContainEqual({
       id: "lqip-lcp", lqipLcp: 900, autoLcp: 690, deltaMs: 210,
     });
     // delta = final.lcpMs - pp.lcpMs = 720 - 640 = 80
-    expect(view.findings).toContainEqual({ id: "final-pick", finalKb: 278, deltaMs: 80 });
+    expect(view.findings).toContainEqual({ id: "final-pick", finalKb: 269, deltaMs: 80 });
   });
 
   it("omits a finding when a strategy it needs is missing — no throw", () => {
@@ -115,14 +117,14 @@ describe("compareBenchmarks — desktop↔mobile", () => {
 
   it("carries both modes' KB + LCP and flags the flip direction", () => {
     const c = compareBenchmarks(FULL, MOBILE, ["auto", "pixel-perfect"]);
-    // auto: desktop round(620000/1024)=605, mobile round(610000/1024)=596 → lighter
+    // auto (imageBytes): desktop round(610000/1024)=596, mobile round(600000/1024)=586 → lighter
     expect(c.rows[0]).toMatchObject({
-      strategy: "auto", desktopKb: 605, mobileKb: 596,
+      strategy: "auto", desktopKb: 596, mobileKb: 586,
       desktopLcpMs: 690, mobileLcpMs: 3794, flip: "lighter-on-mobile",
     });
-    // pixel-perfect: desktop 273, mobile round(960000/1024)=938 → heavier
+    // pixel-perfect: desktop 264, mobile round(950000/1024)=928 → heavier
     expect(c.rows[1]).toMatchObject({
-      strategy: "pixel-perfect", desktopKb: 273, mobileKb: 938, flip: "heavier-on-mobile",
+      strategy: "pixel-perfect", desktopKb: 264, mobileKb: 928, flip: "heavier-on-mobile",
     });
   });
 
