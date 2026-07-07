@@ -61,6 +61,13 @@ const defs = [
     options: { ...base, pixelPerfect: true },
   },
   {
+    id: "skeleton",
+    title: "Skeleton",
+    blurb:
+      "Auto plus a static grey box behind the slot — no image, no bytes, no decode. The cheap floor of the perceived-fill gradient.",
+    options: { ...base, placeholder: "skeleton" },
+  },
+  {
     id: "lqip",
     title: "LQIP",
     blurb:

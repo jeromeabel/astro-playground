@@ -3,12 +3,12 @@ import { STRATEGIES, STRATEGY_IDS, resolveOptions } from '@optimg/lib/strategies
 import type { Strategy, Options } from '@optimg/lib/strategies';
 
 const EXPECTED_IDS: Strategy[] = [
-  'naive', 'manual', 'auto', 'pixel-perfect', 'lqip', 'cropped', 'final',
+  'naive', 'manual', 'auto', 'pixel-perfect', 'skeleton', 'lqip', 'cropped', 'final',
 ];
 
 describe('strategies', () => {
-  it('has exactly 7 strategies', () => {
-    expect(STRATEGIES).toHaveLength(7);
+  it('has exactly 8 strategies', () => {
+    expect(STRATEGIES).toHaveLength(8);
   });
 
   it('has all expected ids in order', () => {
@@ -19,8 +19,8 @@ describe('strategies', () => {
     expect(STRATEGY_IDS).toEqual(STRATEGIES.map((s) => s.id));
   });
 
-  it('STRATEGY_IDS contains all 7 ids', () => {
-    expect(STRATEGY_IDS).toHaveLength(7);
+  it('STRATEGY_IDS contains all 8 ids', () => {
+    expect(STRATEGY_IDS).toHaveLength(8);
     for (const id of EXPECTED_IDS) {
       expect(STRATEGY_IDS).toContain(id);
     }
@@ -55,6 +55,7 @@ const LEGACY_PRESETS: Record<Strategy, Options> = {
   manual:           { ...base, source: "public" },
   auto:             { ...base },
   "pixel-perfect":  { ...base, pixelPerfect: true },
+  skeleton:         { ...base, placeholder: "skeleton" },
   lqip:             { ...base, placeholder: "lqip", animation: true },
   cropped:          { ...base, crop: true },
   final:            { ...base, placeholder: "lqip", animation: true, pixelPerfect: true, crop: true },
