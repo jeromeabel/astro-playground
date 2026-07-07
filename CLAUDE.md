@@ -98,7 +98,11 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
 - **Measurement:** `pnpm benchmark:optimg http://localhost:8888` runs Lighthouse 13
   (3-run median) against `netlify serve`, prints LCP / CLS / bytes across the seven
   strategies, and writes `src/features/optimg/data/benchmark.json` (rendered as a table on the
-  `/optimg` hub). Must use `netlify serve` (not `pnpm preview`) — `auto`, `pixel-perfect`,
+  `/optimg` hub). The hub derives its table + findings via `analyzeBenchmark()` in
+  `lib/benchmark.ts` (pure, safe lookups — a missing strategy omits its finding
+  instead of crashing the build) rendered by `components/BenchmarkResults.astro`;
+  findings keep their inline `<code>`/`<em>` markup, only the numbers come from
+  the view. Must use `netlify serve` (not `pnpm preview`) — `auto`, `pixel-perfect`,
   `lqip`, `cropped`, and `final` emit `/.netlify/images?...` URLs that 404 on the plain preview server,
   skewing results. Lighthouse is cold-cache; a warm reload is faster but not a fair comparison.
 - **Blog captures:** to record a strategy as a looping `<video>` for the blog post, see
