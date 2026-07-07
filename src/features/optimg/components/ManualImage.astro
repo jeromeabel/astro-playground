@@ -2,8 +2,11 @@
 // The bash era done right: hand-cut widths + baked blur from public/manual/,
 // explicit width/height. Reads approx[plan.ctx] directly (not plan.sizes) so
 // pixelPerfect stays a no-op for this source, exactly as before the split.
+// MANUAL_WIDTHS is the same array gen-images.mjs bakes to disk — shared via
+// scripts/manual-widths.mjs so the two sides can't drift (see that file).
 import type { RenderPlan } from "@optimg/lib/render-plan";
 import { approx } from "@optimg/lib/sizes";
+import { MANUAL_WIDTHS } from "../../../../scripts/manual-widths.mjs";
 
 interface Props {
   plan: RenderPlan;
@@ -13,11 +16,12 @@ interface Props {
 
 const { plan, id, alt } = Astro.props;
 const cover = plan.ctx === "cover";
+const srcset = MANUAL_WIDTHS.map((w) => `/manual/${id}-${w}.jpg ${w}w`).join(", ");
 ---
 
 <img
   src={`/manual/${id}-1280.jpg`}
-  srcset={`/manual/${id}-640.jpg 640w, /manual/${id}-960.jpg 960w, /manual/${id}-1280.jpg 1280w, /manual/${id}-1920.jpg 1920w`}
+  srcset={srcset}
   sizes={approx[plan.ctx]}
   width={cover ? 1280 : 640}
   height={cover ? 853 : 427}

@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { FEATURE_DIR } from "./config.mjs";
 import { p0, bar, MOIRE_SLOTS } from "./moire.mjs";
+import { MANUAL_WIDTHS as WIDTHS } from "./manual-widths.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC_DIR = join(root, "src/assets/optimg");
@@ -12,7 +13,6 @@ const MANUAL_DIR = join(root, "public/manual");
 
 const SRC_W = 2400;
 const SRC_H = 1600; // 3:2
-const WIDTHS = [640, 960, 1280, 1920];
 const BLUR_W = 32;
 
 const gallery = JSON.parse(

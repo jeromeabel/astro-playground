@@ -4,13 +4,20 @@
 // cache-guarded fade (scripts/reveal-img.ts) wired via the `reveal-img`
 // class when `fade` is set. Deliberately dumb: the caller decides the kind —
 // this component never inspects Options or a RenderPlan.
-interface Props {
-  kind: "none" | "skeleton" | "lqip";
-  placeholder?: string; // data: URI; required when kind === "lqip"
-  fade: boolean;
-}
+//
+// `placeholder` only exists (and is required) on the "lqip" branch — a
+// discriminated union so the caller can't pass kind:"lqip" without a
+// placeholder, or a placeholder on a kind that ignores it, and get away with
+// it at compile time. Exported so callers (PictureImage) can type their own
+// dispatch object against exactly this shape.
+export type Props =
+  | { kind: "none"; fade: boolean }
+  | { kind: "skeleton"; fade: boolean }
+  | { kind: "lqip"; placeholder: string; fade: boolean };
 
-const { kind, placeholder, fade } = Astro.props;
+const props = Astro.props;
+const { kind, fade } = props;
+const placeholder = props.kind === "lqip" ? props.placeholder : undefined;
 ---
 
 {kind === "none" && <slot />}
