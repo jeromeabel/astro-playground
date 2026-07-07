@@ -1,0 +1,104 @@
+---
+// Renders the "Measured results" section from a pre-computed BenchmarkView.
+// No math, no row lookups, no non-null assertions here — analyzeBenchmark
+// (lib/benchmark.ts) owns every derivation. The findings' narrative copy and
+// inline <code>/<em> markup live below, keyed by finding.id; only the numbers
+// come from the view.
+import type { BenchmarkView } from "@optimg/lib/benchmark";
+
+interface Props {
+  view: BenchmarkView;
+}
+
+const { view } = Astro.props;
+---
+
+<section class="space-y-3">
+  <h2 class="text-lg font-semibold">Measured results</h2>
+  {view.hasData ? (
+    <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-200 text-left dark:border-zinc-800">
+            <th class="px-4 py-2 font-medium">Strategy</th>
+            <th class="px-4 py-2 font-medium">LCP (ms)</th>
+            <th class="px-4 py-2 font-medium">CLS</th>
+            <th class="px-4 py-2 font-medium">Bytes (KB)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {view.rows.map((r) => (
+            <tr class="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/50">
+              <td class="px-4 py-2">
+                <a href={`/optimg/${r.strategy}`} class="font-mono hover:underline">{r.strategy}</a>
+              </td>
+              <td class={`px-4 py-2 tabular-nums ${r.isBestLcp ? "font-semibold text-emerald-600 dark:text-emerald-400" : r.isWorstLcp ? "text-red-500 dark:text-red-400" : ""}`}>
+                {r.lcpMs}
+                {r.isBestLcp && <span class="ml-1 text-xs">↑</span>}
+              </td>
+              <td class="px-4 py-2 tabular-nums">{r.cls.toFixed(3)}</td>
+              <td class={`px-4 py-2 tabular-nums ${r.isBestBytes ? "font-semibold text-emerald-600 dark:text-emerald-400" : ""}`}>
+                {r.kb}
+                {r.isBestBytes && <span class="ml-1 text-xs">↑</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+      No measurements yet — run <code>pnpm benchmark:optimg</code> against
+      <code>netlify serve</code> to populate this table.
+    </p>
+  )}
+  <p class="text-xs text-zinc-500 dark:text-zinc-500">
+    Cold-cache Lighthouse 13 medians (3 runs each). A warm browser reload is
+    faster and is not a fair strategy comparison — see the README.
+  </p>
+
+  {view.hasData && view.findings.length > 0 && (
+    <div class="space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+      <h3 class="text-sm font-semibold">Key findings</h3>
+      <ul class="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+        {view.findings.map((f) => (
+          <li>
+            {f.id === "bytes-winner" && (
+              <Fragment>
+                <span class="font-medium text-zinc-800 dark:text-zinc-200">Bytes wins go to pixel-perfect and final</span>
+                {" "}— {f.ppKb} KB and {f.finalKb} KB,
+                ~55% under <code>auto</code> ({f.autoKb} KB) and 97% under <code>naive</code>.
+                Exact <code>sizes</code> + <code>widths</code> derived from layout tokens means the CDN serves the slot file with no slack.
+              </Fragment>
+            )}
+            {f.id === "lqip-lcp" && (
+              <Fragment>
+                <span class="font-medium text-zinc-800 dark:text-zinc-200">LQIP does not improve LCP</span>
+                {" "}— its LCP ({f.lqipLcp} ms) is
+                worse than <code>auto</code> ({f.autoLcp} ms).
+                Lighthouse records LCP when the <em>full</em> image is visible — after the fade-in fires —
+                so the placeholder adds latency, not savings.
+                LQIP's payoff is <em>perceived</em> speed: the user sees content at ~200 ms even though the metric clock runs longer.
+              </Fragment>
+            )}
+            {f.id === "manual-lcp" && (
+              <Fragment>
+                <span class="font-medium text-zinc-800 dark:text-zinc-200">manual wins LCP</span>
+                {" "}({f.manualLcp} ms) — hand-cut files served directly from <code>public/</code>,
+                no CDN transform roundtrip on <code>/.netlify/images</code>.
+              </Fragment>
+            )}
+            {f.id === "final-pick" && (
+              <Fragment>
+                <span class="font-medium text-zinc-800 dark:text-zinc-200">final is the production pick</span>
+                {" "}— matches pixel-perfect on bytes ({f.finalKb} KB)
+                while LQIP delivers instant visual feedback. The {f.deltaMs} ms
+                LCP delta vs pixel-perfect is the cost of the fade.
+              </Fragment>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+</section>
