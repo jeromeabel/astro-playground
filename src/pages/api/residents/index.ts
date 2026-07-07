@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { residents } from "../../../data/heroes";
+import { residents } from "@/data/heroes";
 
 export const prerender = false;
 

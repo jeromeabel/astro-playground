@@ -3,9 +3,9 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { passthroughImageService } from 'astro/config';
 import { fileURLToPath } from 'node:url';
 import type { ImageMetadata } from 'astro';
-import CustomImage from '../components/CustomImage.astro';
-import { gallery } from '../data/gallery';
-import { resolveOptions } from '../lib/strategies';
+import CustomImage from '@optimg/components/CustomImage.astro';
+import { gallery } from '@optimg/data/gallery';
+import { resolveOptions } from '@optimg/lib/strategies';
 
 // Wiring smokes only: does the emitted HTML carry the plan's decisions?
 // The decisions themselves are unit-tested in render-plan.test.ts; the async

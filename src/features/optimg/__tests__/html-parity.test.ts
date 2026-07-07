@@ -3,9 +3,9 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { passthroughImageService } from 'astro/config';
 import { fileURLToPath } from 'node:url';
 import type { ImageMetadata } from 'astro';
-import CustomImage from '../components/CustomImage.astro';
-import { gallery } from '../data/gallery';
-import { STRATEGY_IDS } from '../lib/strategies';
+import CustomImage from '@optimg/components/CustomImage.astro';
+import { gallery } from '@optimg/data/gallery';
+import { STRATEGY_IDS } from '@optimg/lib/strategies';
 
 // Same fixture shape as CustomImage.test.ts: real committed source so the
 // LQIP sharp pass can run.

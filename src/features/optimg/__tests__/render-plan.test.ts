@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { renderPlan } from "../lib/render-plan";
-import type { RenderContext } from "../lib/render-plan";
-import { resolveOptions } from "../lib/strategies";
-import { exact, approx } from "../lib/sizes";
+import { renderPlan } from "@optimg/lib/render-plan";
+import type { RenderContext } from "@optimg/lib/render-plan";
+import { resolveOptions } from "@optimg/lib/strategies";
+import { exact, approx } from "@optimg/lib/sizes";
 
 const grid = (index?: number, itemCrop?: boolean): RenderContext => ({ ctx: "grid", index, itemCrop });
 const cover: RenderContext = { ctx: "cover" };

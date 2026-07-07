@@ -6,7 +6,8 @@
       "@/*": ["src/*"],
       "@layouts/*": ["src/layouts/*"],
       "@components/*": ["src/components/*"],
-      "@optimg/*": ["src/features/optimg/*"]
+      "@optimg/*": ["src/features/optimg/*"],
+      "@scripts/*": ["scripts/*"]
     }
   },
   "exclude": ["vitest.config.ts", "dist"]

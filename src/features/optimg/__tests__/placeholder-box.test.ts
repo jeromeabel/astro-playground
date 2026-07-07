@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
-import PlaceholderBox from '../components/PlaceholderBox.astro';
+import PlaceholderBox from '@optimg/components/PlaceholderBox.astro';
 
 const CHILD = '<span data-child>x</span>';
 const DATA_URI = 'data:image/webp;base64,AAAA';

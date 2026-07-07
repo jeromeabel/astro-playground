@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { STRATEGIES, STRATEGY_IDS, resolveOptions } from '../lib/strategies';
-import type { Strategy, Options } from '../lib/strategies';
+import { STRATEGIES, STRATEGY_IDS, resolveOptions } from '@optimg/lib/strategies';
+import type { Strategy, Options } from '@optimg/lib/strategies';
 
 const EXPECTED_IDS: Strategy[] = [
   'naive', 'manual', 'auto', 'pixel-perfect', 'lqip', 'cropped', 'final',

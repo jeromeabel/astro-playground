@@ -1,5 +1,5 @@
 import type { APIContext, APIRoute } from "astro";
-import { heroes } from "../../../data/heroes";
+import { heroes } from "@/data/heroes";
 
 export const prerender = false;
 

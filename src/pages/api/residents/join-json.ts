@@ -1,6 +1,6 @@
 // src/pages/api/residents/join-json.ts
 import type { APIRoute, APIContext } from "astro";
-import { heroes, residents } from "../../../data/heroes";
+import { heroes, residents } from "@/data/heroes";
 
 export const prerender = false;
 

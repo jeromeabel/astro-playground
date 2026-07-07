@@ -1,6 +1,6 @@
 // src/pages/api/residents/join-redirect.ts
 import type { APIRoute, APIContext } from "astro";
-import { heroes, residents } from "../../../data/heroes";
+import { heroes, residents } from "@/data/heroes";
 
 export const prerender = false;
 

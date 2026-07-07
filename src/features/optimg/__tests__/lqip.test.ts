@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { fileURLToPath } from "node:url";
 import type { ImageMetadata } from "astro";
-import { buildLqip } from "../lib/lqip";
-import { renderPlan } from "../lib/render-plan";
-import { resolveOptions } from "../lib/strategies";
+import { buildLqip } from "@optimg/lib/lqip";
+import { renderPlan } from "@optimg/lib/render-plan";
+import { resolveOptions } from "@optimg/lib/strategies";
 
 // Same fixture as CustomImage.test.ts: fsPath points at the real committed
 // source so sharp can read it.

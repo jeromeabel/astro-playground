@@ -1,10 +1,10 @@
 ---
 export const prerender = false;
 import type { ImageMetadata } from "astro";
-import Layout from "../../layouts/Layout.astro";
-import Icon from "../../components/Icon.astro";
-import HeroPortrait from "../../components/HeroPortrait.astro";
-import type { Hero } from "../../data/heroes";
+import Layout from "@layouts/Layout.astro";
+import Icon from "@components/Icon.astro";
+import HeroPortrait from "@components/HeroPortrait.astro";
+import type { Hero } from "@/data/heroes";
 
 const { id } = Astro.params;
 const res = await fetch(`${Astro.url.origin}/api/residents/${id}`);

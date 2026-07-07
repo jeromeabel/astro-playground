@@ -1,6 +1,6 @@
 import { ActionError, defineAction } from "astro:actions";
 import { z } from "astro/zod";
-import { heroes, residents } from "../data/heroes";
+import { heroes, residents } from "@/data/heroes";
 
 export const server = {
   join: defineAction({

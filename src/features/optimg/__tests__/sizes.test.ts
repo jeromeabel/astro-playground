@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { layout, slots, exact, approx } from '../lib/sizes';
+import { layout, slots, exact, approx } from '@optimg/lib/sizes';
 
 // These assert the *contract* — what "pixel-perfect" means — not hand-typed
 // pixel values, so they survive any layout-token change. The one snapshot below

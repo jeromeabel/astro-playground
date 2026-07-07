@@ -3,11 +3,11 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { passthroughImageService } from 'astro/config';
 import { fileURLToPath } from 'node:url';
 import type { ImageMetadata } from 'astro';
-import RawImage from '../components/RawImage.astro';
-import ManualImage from '../components/ManualImage.astro';
-import PictureImage from '../components/PictureImage.astro';
-import { renderPlan } from '../lib/render-plan';
-import { resolveOptions } from '../lib/strategies';
+import RawImage from '@optimg/components/RawImage.astro';
+import ManualImage from '@optimg/components/ManualImage.astro';
+import PictureImage from '@optimg/components/PictureImage.astro';
+import { renderPlan } from '@optimg/lib/render-plan';
+import { resolveOptions } from '@optimg/lib/strategies';
 
 const fakeImage = {
   src: '/src/assets/optimg/photo-01.jpg',

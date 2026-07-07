@@ -1,11 +1,11 @@
 ---
 export const prerender = false;
 import { Image } from "astro:assets";
-import Layout from "../../layouts/Layout.astro";
-import Icon from "../../components/Icon.astro";
-import { GET } from "../api/residents/index.ts";
-import type { Hero } from "../../data/heroes";
-import oldHeroes from "../../assets/old-heroes.jpg";
+import Layout from "@layouts/Layout.astro";
+import Icon from "@components/Icon.astro";
+import { GET } from "@/pages/api/residents/index.ts";
+import type { Hero } from "@/data/heroes";
+import oldHeroes from "@/assets/old-heroes.jpg";
 
 const response = await GET(Astro);
 const residents: Hero[] = await response.json();

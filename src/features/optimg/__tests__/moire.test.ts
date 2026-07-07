@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { p0, MOIRE_SLOTS } from "../../../../scripts/moire.mjs";
-import { slots } from "../lib/sizes";
+import { p0, MOIRE_SLOTS } from "@scripts/moire.mjs";
+import { slots } from "@optimg/lib/sizes";
 
 describe("moiré math", () => {
   it("p0(316) === 38", () => {

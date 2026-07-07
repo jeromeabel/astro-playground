@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { gallery } from '../data/gallery';
+import { gallery } from '@optimg/data/gallery';
 
 describe('gallery', () => {
   it('has exactly 21 items', () => {

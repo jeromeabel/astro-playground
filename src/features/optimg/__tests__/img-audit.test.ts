@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { verdict, servedWidth } from '../scripts/img-audit';
+import { verdict, servedWidth } from '@optimg/scripts/img-audit';
 
 describe('verdict — thresholds', () => {
   it('returns ok when got equals need', () => {
