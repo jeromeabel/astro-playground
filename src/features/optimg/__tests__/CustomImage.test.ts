@@ -5,14 +5,12 @@ import { fileURLToPath } from 'node:url';
 import type { ImageMetadata } from 'astro';
 import CustomImage from '../components/CustomImage.astro';
 import { gallery } from '../data/gallery';
-import { STRATEGY_IDS } from '../lib/strategies';
 import { resolveOptions } from '../lib/strategies';
 
-// `fsPath` isn't in the public ImageMetadata type (it's a non-enumerable
-// runtime property astro:assets attaches to real ESM image imports), but
-// the "final"/"lqip" presets will eventually read it to build the inline
-// base64 LQIP placeholder (Task 4) — point it at the real committed source
-// so the Container API render can actually run over it.
+// Wiring smokes only: does the emitted HTML carry the plan's decisions?
+// The decisions themselves are unit-tested in render-plan.test.ts; the async
+// LQIP build in lqip.test.ts; full-output regression in html-parity.test.ts.
+
 const fakeImage = {
   src: '/src/assets/optimg/photo-01.jpg',
   width: 1280,
@@ -24,23 +22,16 @@ const fakeImage = {
 const item = gallery[0]; // photo-01, item.crop is undefined (falsy)
 const croppedItem = { ...item, crop: true };
 
-describe('CustomImage — Layer 2 Container API', () => {
+describe('CustomImage — plan-to-HTML wiring smokes', () => {
   let container: Awaited<ReturnType<typeof AstroContainer.create>>;
 
   beforeAll(async () => {
     container = await AstroContainer.create({
-      astroConfig: {
-        image: { service: passthroughImageService() },
-      },
+      astroConfig: { image: { service: passthroughImageService() } },
     });
   });
 
-  // =========================================================================
-  // Migrated from DemoImage.test.ts — same behavior must still hold, driven
-  // through `strategy` -> resolveOptions() rather than a strategy === switch.
-  // =========================================================================
-
-  it('naive/thumb renders a bare <img> with no srcset or loading', async () => {
+  it('source:raw → bare <img>, no srcset, no loading attr (browser-default eager by design)', async () => {
     const html = await container.renderToString(CustomImage, {
       props: { item, strategy: 'naive', type: 'thumb', image: fakeImage },
     });
@@ -49,14 +40,17 @@ describe('CustomImage — Layer 2 Container API', () => {
     expect(html).not.toContain('loading=');
   });
 
-  it('auto/thumb emits loading="lazy"', async () => {
+  it('source:public → /manual/ src + 4-width srcset + loading/fetchpriority wired', async () => {
     const html = await container.renderToString(CustomImage, {
-      props: { item, strategy: 'auto', type: 'thumb', image: fakeImage },
+      props: { item, strategy: 'manual', type: 'thumb', image: fakeImage, index: 6 },
     });
+    expect(html).toContain(`/manual/${item.id}-1280.jpg`);
+    expect(html).toContain(`/manual/${item.id}-640.jpg 640w`);
     expect(html).toContain('loading="lazy"');
+    expect(html).toContain('fetchpriority="auto"');
   });
 
-  it('auto/cover emits loading="eager" and fetchpriority="high"', async () => {
+  it('source:picture wires loading/fetchpriority from the plan (cover = eager + high)', async () => {
     const html = await container.renderToString(CustomImage, {
       props: { item, strategy: 'auto', type: 'cover', image: fakeImage },
     });
@@ -64,164 +58,35 @@ describe('CustomImage — Layer 2 Container API', () => {
     expect(html).toContain('fetchpriority="high"');
   });
 
-  it('pixel-perfect/thumb emits srcset and sizes', async () => {
+  it('pixel-perfect wires exact sizes + widths into the srcset', async () => {
     const html = await container.renderToString(CustomImage, {
-      props: { item, strategy: 'pixel-perfect', type: 'thumb', image: fakeImage },
+      props: { item, strategy: 'pixel-perfect', type: 'thumb', image: fakeImage, index: 6 },
     });
-    expect(html).toContain('srcset');
-    expect(html).toContain('sizes');
-  });
-
-  it('final/thumb emits srcset and sizes', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, strategy: 'final', type: 'thumb', image: fakeImage },
-    });
-    expect(html).toContain('srcset');
-    expect(html).toContain('sizes');
-  });
-
-  it('lqip/thumb emits aria-hidden placeholder', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, strategy: 'lqip', type: 'thumb', image: fakeImage },
-    });
-    expect(html).toContain('aria-hidden="true"');
-  });
-
-  it('final/thumb emits aria-hidden placeholder', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, strategy: 'final', type: 'thumb', image: fakeImage },
-    });
-    expect(html).toContain('aria-hidden="true"');
-  });
-
-  const nonNaive = STRATEGY_IDS.filter((s) => s !== 'naive');
-
-  it.each(nonNaive)('%s/thumb index=0 emits loading="eager" fetchpriority="high" (LCP)', async (strategy) => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, strategy, type: 'thumb', image: fakeImage, index: 0 },
-    });
-    expect(html).toContain('loading="eager"');
-    expect(html).toContain('fetchpriority="high"');
-  });
-
-  it.each(nonNaive)('%s/thumb index=3 emits loading="eager" fetchpriority="auto" (above-fold)', async (strategy) => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, strategy, type: 'thumb', image: fakeImage, index: 3 },
-    });
-    expect(html).toContain('loading="eager"');
-    expect(html).toContain('fetchpriority="auto"');
-  });
-
-  it.each(nonNaive)('%s/thumb index=6 emits loading="lazy" (below-fold)', async (strategy) => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, strategy, type: 'thumb', image: fakeImage, index: 6 },
-    });
-    expect(html).toContain('loading="lazy"');
-    expect(html).toContain('fetchpriority="auto"');
-  });
-
-  it('naive/thumb has no loading attribute (browser-default eager by design)', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, strategy: 'naive', type: 'thumb', image: fakeImage },
-    });
-    expect(html).not.toContain('loading=');
-  });
-
-  // =========================================================================
-  // New: orthogonal-option matrix — options combine independently of any
-  // named strategy. Pass raw `options` bundles, not just `strategy`.
-  // =========================================================================
-
-  it('source:raw → bare <img>, no srcset, no loading', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: {
-        item,
-        type: 'thumb',
-        image: fakeImage,
-        options: { source: 'raw', debug: false, placeholder: 'none', animation: false, pixelPerfect: false, crop: false },
-      },
-    });
-    expect(html).toContain('<img');
-    expect(html).not.toContain('srcset');
-    expect(html).not.toContain('loading=');
-  });
-
-  it('source:public → /manual/ src + srcset', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, strategy: 'manual', type: 'thumb', image: fakeImage },
-    });
-    expect(html).toContain(`/manual/${item.id}-1280.jpg`);
+    expect(html).toContain('min-width: 1024px'); // exact grid sizes string
     expect(html).toContain('srcset');
   });
 
-  it('aboveFold:true forces loading="eager" even at index=99', async () => {
+  it('lqip below-fold wires placeholder + fade: data: URI, reveal-img, opacity:0', async () => {
     const html = await container.renderToString(CustomImage, {
-      props: {
-        item,
-        type: 'thumb',
-        image: fakeImage,
-        index: 99,
-        options: { ...resolveOptions('auto'), aboveFold: true },
-      },
+      props: { item, strategy: 'lqip', type: 'thumb', image: fakeImage, index: 99 },
     });
-    expect(html).toContain('loading="eager"');
+    const placeholderImgTag = html.match(/<img[^>]*aria-hidden="true"[^>]*>/)?.[0] ?? '';
+    expect(placeholderImgTag).toMatch(/src="data:image\/webp;base64,[^"]+"/);
+    expect(placeholderImgTag).not.toContain('/.netlify/images');
+    expect(html).toContain('reveal-img');
+    expect(html).toContain('opacity:0');
   });
 
-  it('aboveFold:false forces loading="lazy" even at index=0', async () => {
+  it('lqip above-fold (LCP) wires the no-fade plan: placeholder present, no reveal-img, no opacity:0', async () => {
     const html = await container.renderToString(CustomImage, {
-      props: {
-        item,
-        type: 'thumb',
-        image: fakeImage,
-        index: 0,
-        options: { ...resolveOptions('auto'), aboveFold: false },
-      },
+      props: { item, strategy: 'lqip', type: 'thumb', image: fakeImage, index: 0 },
     });
-    expect(html).toContain('loading="lazy"');
+    expect(html).toMatch(/src="data:image\/webp;base64,[^"]+"/);
+    expect(html).not.toContain('reveal-img');
+    expect(html).not.toContain('opacity:0');
   });
 
-  it('pixelPerfect:true emits exact grid sizes; false emits approx 33vw', async () => {
-    const ppHtml = await container.renderToString(CustomImage, {
-      props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('auto', { pixelPerfect: true }) },
-    });
-    const approxHtml = await container.renderToString(CustomImage, {
-      props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('auto', { pixelPerfect: false }) },
-    });
-    expect(ppHtml).toContain('min-width: 1024px');
-    expect(approxHtml).toContain('33vw');
-    expect(approxHtml).not.toContain('min-width: 1024px');
-  });
-
-  it('crop:true + pixelPerfect:false → fit=cover, height=480 (coarse, unconditional)', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('cropped') },
-    });
-    expect(html).toContain('height="480"');
-  });
-
-  // Astro's <Picture> always emits a computed `height` attribute (derived
-  // from the source's natural aspect ratio) and defaults fit="cover" even
-  // when we pass neither — so `position="top"` (only set by OUR crop logic)
-  // plus the differing numeric height (natural 321 vs cropped 4:3 -> 361 for
-  // the grid slot width) are the reliable "did we crop" signals here.
-  it('crop:true + pixelPerfect:true honors item.crop (final): crops when item.crop===true', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item: croppedItem, type: 'thumb', image: fakeImage, options: resolveOptions('final') },
-    });
-    expect(html).toContain('data-astro-image-pos="top"');
-    expect(html).toContain('height="361"');
-  });
-
-  it('crop:true + pixelPerfect:true does NOT crop when item.crop is not true', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('final') },
-    });
-    expect(html).not.toContain('data-astro-image-pos="top"');
-    expect(html).toContain('data-astro-image-pos="center"');
-    expect(html).toContain('height="321"');
-  });
-
-  it('placeholder:"skeleton" → skeleton box, NO aria-hidden lqip <img>, NO data:image', async () => {
+  it('placeholder:"skeleton" wires the grey box, not an lqip <img>', async () => {
     const html = await container.renderToString(CustomImage, {
       props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('auto', { placeholder: 'skeleton' }) },
     });
@@ -230,82 +95,18 @@ describe('CustomImage — Layer 2 Container API', () => {
     expect(html).not.toContain('data:image');
   });
 
-  it('placeholder:"none" → no placeholder box at all', async () => {
+  it('final wires crop geometry when item.crop === true (position top + 4:3 height)', async () => {
     const html = await container.renderToString(CustomImage, {
-      props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('auto') },
+      props: { item: croppedItem, strategy: 'final', type: 'thumb', image: fakeImage, index: 6 },
     });
-    expect(html).not.toContain('aria-hidden');
+    expect(html).toContain('data-astro-image-pos="top"');
+    expect(html).toContain('height="361"');
   });
 
-  it('resolveOptions("auto",{pixelPerfect:true}) renders picture with exact sizes + no placeholder', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('auto', { pixelPerfect: true }) },
-    });
-    expect(html).toContain('min-width: 1024px');
-    expect(html).not.toContain('aria-hidden');
-  });
-
-  it('placeholder:"lqip" inlines a data:image/webp;base64 placeholder (no /.netlify/images w=32)', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('lqip') },
-    });
-    // The aria-hidden placeholder <img> itself must be an inline data: URI —
-    // not a fetched /.netlify/images?...&w=32 transform. The real <Picture>
-    // legitimately still emits /.netlify/images URLs in its own srcset, so
-    // scope the "no netlify URL" check to the placeholder tag specifically.
-    const placeholderImgTag = html.match(/<img[^>]*aria-hidden="true"[^>]*>/)?.[0] ?? '';
-    expect(placeholderImgTag).toMatch(/src="data:image\/webp;base64,[^"]+"/);
-    expect(placeholderImgTag).not.toContain('/.netlify/images');
-    expect(placeholderImgTag).not.toContain('w=32');
-  });
-
-  it('animation:true + below-fold → reveal-img class + picture opacity:0', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, type: 'thumb', image: fakeImage, index: 99, options: resolveOptions('lqip') },
-    });
-    expect(html).toContain('reveal-img');
-    expect(html).toContain('opacity:0');
-  });
-
-  it('animation:false → no reveal-img, no opacity:0 (composable off switch)', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: {
-        item,
-        type: 'thumb',
-        image: fakeImage,
-        index: 99,
-        options: resolveOptions('lqip', { animation: false }),
-      },
-    });
-    expect(html).not.toContain('reveal-img');
-    expect(html).not.toContain('opacity:0');
-  });
-
-  it('animation:true + aboveFold:true respects ABOVE_FOLD_FADE (fade absent, since the constant is false)', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: {
-        item,
-        type: 'thumb',
-        image: fakeImage,
-        options: resolveOptions('lqip', { aboveFold: true }),
-      },
-    });
-    expect(html).toMatch(/src="data:image\/webp;base64,[^"]+"/);
-    expect(html).not.toContain('reveal-img');
-    expect(html).not.toContain('opacity:0');
-  });
-
-  it('debug:true adds the data-optimg-debug hook attribute (picture source)', async () => {
+  it('debug:true wires the data-optimg-debug hook attribute', async () => {
     const html = await container.renderToString(CustomImage, {
       props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('auto', { debug: true }) },
     });
     expect(html).toContain('data-optimg-debug');
-  });
-
-  it('debug:false (default) does not add the data-optimg-debug attribute', async () => {
-    const html = await container.renderToString(CustomImage, {
-      props: { item, type: 'thumb', image: fakeImage, options: resolveOptions('auto') },
-    });
-    expect(html).not.toContain('data-optimg-debug');
   });
 });
