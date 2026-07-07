@@ -55,7 +55,7 @@ and **off by default** (`crop: true` in `gallery.json` → 16:9 cover / 4:3 thum
   for the full reproducibility tiering.
 - **Rendering:** `src/features/optimg/components/CustomImage.astro` reads a resolved
   `Options` bundle (from the `StrategyDef` records in `lib/strategies.ts`, via `resolveOptions()`)
-  — no `strategy ===` switch. Render decisions live in `lib/render-plan.ts` (pure, unit-tested in `__tests__/render-plan.test.ts`); the async LQIP build in `lib/lqip.ts` is the only sharp/fs caller in the render path. Markup is split by source: `RawImage` / `ManualImage` / `PictureImage` adapters take the whole `RenderPlan` as their prop contract; `PlaceholderBox` owns the none/skeleton/lqip wrappers; `CustomImage` only dispatches on `plan.source`. `sizes` strings **and** the pixel-perfect/`final` `widths`
+  — no `strategy ===` switch. Render decisions live in `lib/render-plan.ts` (pure, unit-tested in `__tests__/render-plan.test.ts`); the async LQIP build in `lib/lqip.ts` is the only sharp/fs caller in the render path. Markup is split by source: `ManualImage` / `PictureImage` adapters take the whole `RenderPlan` as their prop contract; `RawImage` deliberately takes only `{image, alt}` — the naive floor ignores every plan decision. `PlaceholderBox` owns the none/skeleton/lqip wrappers; `CustomImage` only dispatches on `plan.source`. `sizes` strings **and** the pixel-perfect/`final` `widths`
   come from `src/features/optimg/lib/sizes.ts`, which is a derive-only pipeline:
   `layout` (the only literals) → `slot()`/`retina()` → `slots` (named integer map)
   → `exact`/`approx` bundles, each keyed `grid`/`cover`. `CustomImage` picks a context
