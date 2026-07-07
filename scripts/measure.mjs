@@ -7,7 +7,7 @@ import { median, stats, extractDpl } from "./stats.mjs";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(root, "scripts/lh");
 
-const STRATEGIES = ["naive", "manual", "auto", "pixel-perfect", "lqip", "cropped", "final"];
+const STRATEGIES = ["naive", "manual", "auto", "pixel-perfect", "skeleton", "lqip", "cropped", "final"];
 
 // One measured Lighthouse run -> the numbers we aggregate.
 // imageBytes (transferSize of resourceType Image) is the primary ranking:

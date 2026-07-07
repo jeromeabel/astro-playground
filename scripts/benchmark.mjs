@@ -5,7 +5,7 @@ import { printTable, writeResults } from "./measure.mjs";
 //   mode = "mobile" (default) | "desktop"
 const baseUrl = process.argv[2] ?? "http://localhost:8888";
 const mode = process.argv[3] ?? "mobile";
-const STRATEGIES = ["naive", "manual", "auto", "pixel-perfect", "lqip", "cropped", "final"];
+const STRATEGIES = ["naive", "manual", "auto", "pixel-perfect", "skeleton", "lqip", "cropped", "final"];
 
 for (const s of STRATEGIES) {
   runLighthouse(s, baseUrl, mode);
