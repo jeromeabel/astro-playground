@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { analyzeBenchmark } from "../lib/benchmark";
+import { analyzeBenchmark, compareBenchmarks } from "@optimg/lib/benchmark";
 
 // Shape mirrors data/benchmark.desktop.json (extra fields like runs/dpl must
 // be tolerated and ignored).
@@ -23,11 +23,12 @@ const FULL = {
 };
 
 describe("analyzeBenchmark — rows", () => {
-  it("maps every row with rounded KB", () => {
+  it("maps every row with rounded KB and reads the run count from the data", () => {
     const view = analyzeBenchmark(FULL, "desktop");
     expect(view.hasData).toBe(true);
     expect(view.mode).toBe("desktop");
     expect(view.generatedAt).toBe("2026-07-04T00:04:39.500Z");
+    expect(view.runs).toBe(5);
     expect(view.rows).toHaveLength(7);
     expect(view.rows[0]).toMatchObject({ strategy: "naive", lcpMs: 526, kb: 9136 });
   });
@@ -43,21 +44,26 @@ describe("analyzeBenchmark — rows", () => {
 });
 
 describe("analyzeBenchmark — findings", () => {
-  it("emits all four findings in order when every referenced strategy is present", () => {
+  it("emits the three data-backed findings in order when every referenced strategy is present", () => {
     const view = analyzeBenchmark(FULL, "desktop");
     expect(view.findings.map((f) => f.id)).toEqual([
-      "bytes-winner", "lqip-lcp", "manual-lcp", "final-pick",
+      "bytes-winner", "lqip-lcp", "final-pick",
     ]);
   });
 
-  it("carries the measured numbers on each finding (round(bytes/1024), lcp delta)", () => {
+  it("derives percentages and LCP deltas from the data — never literals", () => {
     const view = analyzeBenchmark(FULL, "desktop");
-    // round(280000/1024)=273, round(285000/1024)=278, round(620000/1024)=605
+    // round(280000/1024)=273, round(285000/1024)=278, round(620000/1024)=605,
+    // round(9355024/1024)=9136. pctUnderAuto=round((605-273)/605*100)=55,
+    // pctUnderNaive=round((9136-273)/9136*100)=97.
     expect(view.findings).toContainEqual({
       id: "bytes-winner", ppKb: 273, finalKb: 278, autoKb: 605,
+      pctUnderAuto: 55, pctUnderNaive: 97,
     });
-    expect(view.findings).toContainEqual({ id: "lqip-lcp", lqipLcp: 900, autoLcp: 690 });
-    expect(view.findings).toContainEqual({ id: "manual-lcp", manualLcp: 555 });
+    // lqip delta = lqip.lcpMs - auto.lcpMs = 900 - 690 = 210
+    expect(view.findings).toContainEqual({
+      id: "lqip-lcp", lqipLcp: 900, autoLcp: 690, deltaMs: 210,
+    });
     // delta = final.lcpMs - pp.lcpMs = 720 - 640 = 80
     expect(view.findings).toContainEqual({ id: "final-pick", finalKb: 278, deltaMs: 80 });
   });
@@ -66,9 +72,14 @@ describe("analyzeBenchmark — findings", () => {
     const noLqip = { ...FULL, rows: FULL.rows.filter((r) => r.strategy !== "lqip") };
     const view = analyzeBenchmark(noLqip, "desktop");
     expect(view.hasData).toBe(true);
-    expect(view.findings.map((f) => f.id)).toEqual([
-      "bytes-winner", "manual-lcp", "final-pick",
-    ]);
+    expect(view.findings.map((f) => f.id)).toEqual(["bytes-winner", "final-pick"]);
+  });
+
+  it("drops bytes-winner when its naive baseline is missing — no throw", () => {
+    const noNaive = { ...FULL, rows: FULL.rows.filter((r) => r.strategy !== "naive") };
+    const view = analyzeBenchmark(noNaive, "desktop");
+    // bytes-winner needs naive for pctUnderNaive → gone; the rest survive
+    expect(view.findings.map((f) => f.id)).toEqual(["lqip-lcp", "final-pick"]);
   });
 
   it("drops every finding that references a renamed strategy — still no throw", () => {
@@ -78,7 +89,53 @@ describe("analyzeBenchmark — findings", () => {
     };
     const view = analyzeBenchmark(renamed, "desktop");
     // bytes-winner needs final, final-pick needs final → both gone
-    expect(view.findings.map((f) => f.id)).toEqual(["lqip-lcp", "manual-lcp"]);
+    expect(view.findings.map((f) => f.id)).toEqual(["lqip-lcp"]);
+  });
+});
+
+describe("compareBenchmarks — desktop↔mobile", () => {
+  // Mobile mirrors the real inversion: pixel-perfect balloons (small desktop
+  // thumb → full-width mobile hero), auto shrinks (its generic sizes under-sizes
+  // the big slot). Same row helper, flipped bytes.
+  const MOBILE = {
+    mode: "mobile",
+    generatedAt: "2026-07-03T23:55:58.998Z",
+    rows: [
+      row("auto", 3794, 610_000),
+      row("pixel-perfect", 4494, 960_000),
+      row("final", 4514, 965_000),
+    ],
+  };
+
+  it("emits one row per requested strategy present in BOTH modes, in order", () => {
+    const c = compareBenchmarks(FULL, MOBILE, ["auto", "pixel-perfect", "final"]);
+    expect(c.hasData).toBe(true);
+    expect(c.rows.map((r) => r.strategy)).toEqual(["auto", "pixel-perfect", "final"]);
+  });
+
+  it("carries both modes' KB + LCP and flags the flip direction", () => {
+    const c = compareBenchmarks(FULL, MOBILE, ["auto", "pixel-perfect"]);
+    // auto: desktop round(620000/1024)=605, mobile round(610000/1024)=596 → lighter
+    expect(c.rows[0]).toMatchObject({
+      strategy: "auto", desktopKb: 605, mobileKb: 596,
+      desktopLcpMs: 690, mobileLcpMs: 3794, flip: "lighter-on-mobile",
+    });
+    // pixel-perfect: desktop 273, mobile round(960000/1024)=938 → heavier
+    expect(c.rows[1]).toMatchObject({
+      strategy: "pixel-perfect", desktopKb: 273, mobileKb: 938, flip: "heavier-on-mobile",
+    });
+  });
+
+  it("skips a strategy missing from either mode — never throws", () => {
+    const c = compareBenchmarks(FULL, MOBILE, ["auto", "cropped", "ghost"]);
+    // cropped exists on desktop only, ghost nowhere → both skipped
+    expect(c.rows.map((r) => r.strategy)).toEqual(["auto"]);
+  });
+
+  it("no overlap → hasData:false, empty rows", () => {
+    const c = compareBenchmarks(FULL, { rows: [] }, ["auto", "pixel-perfect"]);
+    expect(c.hasData).toBe(false);
+    expect(c.rows).toEqual([]);
   });
 });
 

@@ -4,17 +4,18 @@
 // (lib/benchmark.ts) owns every derivation. The findings' narrative copy and
 // inline <code>/<em> markup live below, keyed by finding.id; only the numbers
 // come from the view.
-import type { BenchmarkView } from "@optimg/lib/benchmark";
+import type { BenchmarkView, BenchmarkCompare } from "@optimg/lib/benchmark";
 
 interface Props {
   view: BenchmarkView;
+  compare?: BenchmarkCompare;
 }
 
-const { view } = Astro.props;
+const { view, compare } = Astro.props;
 ---
 
 <section class="space-y-3">
-  <h2 class="text-lg font-semibold">Measured results</h2>
+  <h2 class="text-lg font-semibold">Measured results — desktop</h2>
   {view.hasData ? (
     <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
       <table class="w-full text-sm">
@@ -53,8 +54,9 @@ const { view } = Astro.props;
     </p>
   )}
   <p class="text-xs text-zinc-500 dark:text-zinc-500">
-    Cold-cache Lighthouse 13 medians (3 runs each). A warm browser reload is
-    faster and is not a fair strategy comparison — see the README.
+    Warm-cache Lighthouse 13 medians — {view.mode}, {view.runs ?? "several"} runs
+    each on one deploy. Image bytes are the deterministic ranking; LCP is the
+    secondary confirmation — see the README.
   </p>
 
   {view.hasData && view.findings.length > 0 && (
@@ -67,25 +69,17 @@ const { view } = Astro.props;
               <Fragment>
                 <span class="font-medium text-zinc-800 dark:text-zinc-200">Bytes wins go to pixel-perfect and final</span>
                 {" "}— {f.ppKb} KB and {f.finalKb} KB,
-                ~55% under <code>auto</code> ({f.autoKb} KB) and 97% under <code>naive</code>.
+                ~{f.pctUnderAuto}% under <code>auto</code> ({f.autoKb} KB) and {f.pctUnderNaive}% under <code>naive</code>.
                 Exact <code>sizes</code> + <code>widths</code> derived from layout tokens means the CDN serves the slot file with no slack.
               </Fragment>
             )}
             {f.id === "lqip-lcp" && (
               <Fragment>
                 <span class="font-medium text-zinc-800 dark:text-zinc-200">LQIP does not improve LCP</span>
-                {" "}— its LCP ({f.lqipLcp} ms) is
-                worse than <code>auto</code> ({f.autoLcp} ms).
-                Lighthouse records LCP when the <em>full</em> image is visible — after the fade-in fires —
-                so the placeholder adds latency, not savings.
-                LQIP's payoff is <em>perceived</em> speed: the user sees content at ~200 ms even though the metric clock runs longer.
-              </Fragment>
-            )}
-            {f.id === "manual-lcp" && (
-              <Fragment>
-                <span class="font-medium text-zinc-800 dark:text-zinc-200">manual wins LCP</span>
-                {" "}({f.manualLcp} ms) — hand-cut files served directly from <code>public/</code>,
-                no CDN transform roundtrip on <code>/.netlify/images</code>.
+                {" "}— its LCP ({f.lqipLcp} ms) runs ~{f.deltaMs} ms over <code>auto</code> ({f.autoLcp} ms)
+                at equal image bytes: the cost is decoding the placeholder, not the image.
+                The above-fold LCP <em>snaps</em> now — the fade is exempted above the fold — so the placeholder never inflates the metric.
+                LQIP's payoff is <em>perceived</em> speed: a filled slot instead of a white box while the real file streams.
               </Fragment>
             )}
             {f.id === "final-pick" && (
@@ -93,12 +87,48 @@ const { view } = Astro.props;
                 <span class="font-medium text-zinc-800 dark:text-zinc-200">final is the production pick</span>
                 {" "}— matches pixel-perfect on bytes ({f.finalKb} KB)
                 while LQIP delivers instant visual feedback. The {f.deltaMs} ms
-                LCP delta vs pixel-perfect is the cost of the fade.
+                LCP delta vs pixel-perfect is the cost of the LQIP layer (placeholder decode), not a fade — the above-fold image snaps.
               </Fragment>
             )}
           </li>
         ))}
       </ul>
+    </div>
+  )}
+
+  {compare?.hasData && (
+    <div class="space-y-2">
+      <h3 class="text-sm font-semibold">Desktop vs mobile — same code, the slot flips</h3>
+      <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-zinc-200 text-left dark:border-zinc-800">
+              <th class="px-4 py-2 font-medium">Strategy</th>
+              <th class="px-4 py-2 font-medium">Desktop (KB)</th>
+              <th class="px-4 py-2 font-medium">Mobile (KB)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {compare.rows.map((r) => (
+              <tr class="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/50">
+                <td class="px-4 py-2">
+                  <a href={`/optimg/${r.strategy}`} class="font-mono hover:underline">{r.strategy}</a>
+                </td>
+                <td class="px-4 py-2 tabular-nums">{r.desktopKb}</td>
+                <td class={`px-4 py-2 tabular-nums ${r.flip === "heavier-on-mobile" ? "text-red-500 dark:text-red-400" : r.flip === "lighter-on-mobile" ? "text-emerald-600 dark:text-emerald-400" : ""}`}>
+                  {r.mobileKb}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="text-xs text-zinc-500 dark:text-zinc-500">
+        <code>pixel-perfect</code> is the lightest on desktop (316&thinsp;px 3-col thumb)
+        and among the heaviest on mobile (full-width hero at DPR&nbsp;1.75), while
+        <code>auto</code> does the reverse — it under-sizes the big mobile slot.
+        Bytes compare within a mode; each row is one strategy's own desktop→mobile shift.
+      </p>
     </div>
   )}
 </section>

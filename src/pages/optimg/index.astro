@@ -2,13 +2,15 @@
 import Layout from "@layouts/Layout.astro";
 import Breadcrumb from "@components/Breadcrumb.astro";
 import BenchmarkResults from "@optimg/components/BenchmarkResults.astro";
-import benchmarkData from "@optimg/data/benchmark.desktop.json";
-import { analyzeBenchmark } from "@optimg/lib/benchmark";
+import desktopData from "@optimg/data/benchmark.desktop.json";
+import mobileData from "@optimg/data/benchmark.mobile.json";
+import { analyzeBenchmark, compareBenchmarks } from "@optimg/lib/benchmark";
 import { STRATEGIES } from "@optimg/lib/strategies";
 
-// Desktop stays the hub default; benchmark.mobile.json becomes a mode toggle
-// in a follow-up, not a rewrite (analyzeBenchmark already takes the mode).
-const view = analyzeBenchmark(benchmarkData, "desktop");
+// Desktop is the primary table; the desktop↔mobile compare shows the inversion
+// (same strategy, opposite byte ranking) for the three strategies that flip.
+const view = analyzeBenchmark(desktopData, "desktop");
+const compare = compareBenchmarks(desktopData, mobileData, ["auto", "pixel-perfect", "final"]);
 ---
 
 <Layout title="Images — Astro Playground" description="Seven image-optimization strategies, measured.">
@@ -44,6 +46,6 @@ const view = analyzeBenchmark(benchmarkData, "desktop");
       </ul>
     </section>
 
-    <BenchmarkResults view={view} />
+    <BenchmarkResults view={view} compare={compare} />
   </main>
 </Layout>
