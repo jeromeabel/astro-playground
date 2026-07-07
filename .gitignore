@@ -38,3 +38,5 @@ public/manual/
 
 # optimg blog captures — raw recordings + converted clips stay local (promoted into the blog repo manually)
 captures/
+
+.claude
