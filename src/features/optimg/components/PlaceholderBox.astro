@@ -1,0 +1,35 @@
+---
+// Placeholder box behind an image: "none" renders only the slot; "skeleton"
+// is a static grey box; "lqip" is an inlined base64 blurred <img>, with the
+// cache-guarded fade (scripts/reveal-img.ts) wired via the `reveal-img`
+// class when `fade` is set. Deliberately dumb: the caller decides the kind —
+// this component never inspects Options or a RenderPlan.
+interface Props {
+  kind: "none" | "skeleton" | "lqip";
+  placeholder?: string; // data: URI; required when kind === "lqip"
+  fade: boolean;
+}
+
+const { kind, placeholder, fade } = Astro.props;
+---
+
+{kind === "none" && <slot />}
+
+{kind === "skeleton" && (
+  <div class="relative overflow-hidden">
+    <div class="absolute inset-0 -z-10 h-full w-full bg-zinc-200 dark:bg-zinc-800" aria-hidden="true" />
+    <slot />
+  </div>
+)}
+
+{kind === "lqip" && (
+  <div class={fade ? "reveal-img relative overflow-hidden" : "relative overflow-hidden"}>
+    <img
+      class="absolute inset-0 -z-10 h-full w-full object-cover blur-2xl"
+      aria-hidden="true"
+      src={placeholder}
+      alt=""
+    />
+    <slot />
+  </div>
+)}
