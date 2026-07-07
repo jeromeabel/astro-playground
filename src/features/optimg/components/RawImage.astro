@@ -1,0 +1,15 @@
+---
+// The naive floor: no srcset, no sizes, no width/height, no loading attr
+// (browser-default eager) → worst bytes + CLS. Intentionally ignores the
+// RenderPlan — that IS the strategy being demonstrated.
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  image: ImageMetadata;
+  alt: string;
+}
+
+const { image, alt } = Astro.props;
+---
+
+<img src={image.src} alt={alt} class="block w-full" />

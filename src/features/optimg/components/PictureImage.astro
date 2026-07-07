@@ -1,0 +1,62 @@
+---
+// The <Picture> source: one markup block, wrapped by PlaceholderBox. Owns the
+// only buildLqip call (async, sharp/fs) — RawImage/ManualImage never need it.
+import { Picture } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import type { RenderPlan } from "@optimg/lib/render-plan";
+import { buildLqip } from "@optimg/lib/lqip";
+import PlaceholderBox from "./PlaceholderBox.astro";
+
+interface Props {
+  plan: RenderPlan;
+  image: ImageMetadata;
+  alt: string;
+}
+
+const { plan, image, alt } = Astro.props;
+
+const placeholder = plan.needsLqip ? await buildLqip(image, plan) : undefined;
+const kind: "none" | "skeleton" | "lqip" =
+  placeholder !== undefined ? "lqip" : plan.showSkeleton ? "skeleton" : "none";
+
+// Props every render shares. `layout` stays inline below: it's the
+// discriminant of Astro's <Picture> prop union, and spreading it would stop
+// TypeScript from selecting the constrained variant (where `height` is
+// optional).
+const baseProps: {
+  formats: ("avif" | "webp")[];
+  loading: "lazy" | "eager";
+  fetchpriority: "high" | "auto";
+  alt: string;
+  class: string;
+} = {
+  formats: ["avif", "webp"],
+  loading: plan.loading,
+  fetchpriority: plan.fetchpriority,
+  alt,
+  class: "block w-full",
+};
+
+// Opt-in hook attribute for img-audit.ts style tooling; the opacity:0 start
+// state only applies to the lqip fade (reveal-img.ts flips it on load).
+const pictureAttributes = plan.debug ? { "data-optimg-debug": "true" } : {};
+const attrs =
+  kind === "lqip" && plan.fade
+    ? { ...pictureAttributes, style: "opacity:0" }
+    : pictureAttributes;
+---
+
+<PlaceholderBox kind={kind} placeholder={placeholder} fade={plan.fade}>
+  <Picture
+    src={image}
+    layout="constrained"
+    {...baseProps}
+    width={plan.width}
+    widths={plan.widths}
+    height={plan.height}
+    fit={plan.fit}
+    position={plan.position}
+    sizes={plan.sizes}
+    pictureAttributes={attrs}
+  />
+</PlaceholderBox>

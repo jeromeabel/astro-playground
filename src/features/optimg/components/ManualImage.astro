@@ -1,0 +1,29 @@
+---
+// The bash era done right: hand-cut widths + baked blur from public/manual/,
+// explicit width/height. Reads approx[plan.ctx] directly (not plan.sizes) so
+// pixelPerfect stays a no-op for this source, exactly as before the split.
+import type { RenderPlan } from "@optimg/lib/render-plan";
+import { approx } from "@optimg/lib/sizes";
+
+interface Props {
+  plan: RenderPlan;
+  id: string; // gallery item id → /manual/<id>-<w>.jpg files
+  alt: string;
+}
+
+const { plan, id, alt } = Astro.props;
+const cover = plan.ctx === "cover";
+---
+
+<img
+  src={`/manual/${id}-1280.jpg`}
+  srcset={`/manual/${id}-640.jpg 640w, /manual/${id}-960.jpg 960w, /manual/${id}-1280.jpg 1280w, /manual/${id}-1920.jpg 1920w`}
+  sizes={approx[plan.ctx]}
+  width={cover ? 1280 : 640}
+  height={cover ? 853 : 427}
+  loading={plan.loading}
+  fetchpriority={plan.fetchpriority}
+  alt={alt}
+  class="block w-full bg-cover"
+  style={`background-image:url(/manual/${id}-blur.jpg)`}
+/>
