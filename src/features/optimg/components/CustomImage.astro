@@ -1,12 +1,12 @@
 ---
-import { readFile } from "node:fs/promises";
-import sharp from "sharp";
 import { Picture } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import type { GalleryItem } from "@optimg/data/gallery";
 import type { Strategy, Options } from "@optimg/lib/strategies";
 import { resolveOptions } from "@optimg/lib/strategies";
-import { exact, approx } from "@optimg/lib/sizes";
+import { renderPlan } from "@optimg/lib/render-plan";
+import { buildLqip } from "@optimg/lib/lqip";
+import { approx } from "@optimg/lib/sizes";
 
 interface Props {
   item: GalleryItem;
@@ -25,78 +25,19 @@ const { item, type, image, index, strategy, options } = Astro.props;
 // enhancements).
 const opts: Options = resolveOptions(strategy ?? "auto", options);
 
-// Viewport is unknown at build time (static prerender, no Client Hints on
-// first nav) so EAGER_AHEAD is a fixed worst-case constant: 6 covers mobile
-// 1-col (3 above fold) and md/lg 2–3-col (2 rows = 6). Over-eager on mobile
-// costs ~2 small thumbs; lazy-on-LCP hurts LCP. Bias high.
-const EAGER_AHEAD = 6;
+// Every render decision — loading, fetchpriority, fade, sizes/widths, crop
+// geometry, placeholder flags — is derived by the pure seam. This component
+// only wires the plan into markup.
+const plan = renderPlan(opts, {
+  ctx: type === "cover" ? "cover" : "grid",
+  index,
+  itemCrop: item.crop,
+});
 
-// undefined index (caller omitted it) → Infinity → safely below-fold.
-function isAboveFold(i: number | undefined): boolean {
-  return (i ?? Infinity) < EAGER_AHEAD;
-}
-
-const isCover = type === "cover";
-const isLCP = !isCover && index === 0;
-// opts.aboveFold, when explicitly set, overrides the index/type derivation —
-// lets the option matrix exercise loading independent of position.
-const aboveFold = opts.aboveFold ?? (isCover || isAboveFold(index));
-const loading = aboveFold ? "eager" : "lazy";
-// fetchpriority="high" is a scalpel — exactly one element (the LCP). Spreading
-// it across the whole above-fold row dilutes the signal and hurts LCP.
-const fetchpriority = (isCover || isLCP) ? "high" : "auto";
-
-// Whether the above-fold (LCP-candidate) card still fades its real <Picture>
-// in over the placeholder. This is NOT provisional: a live Lighthouse
-// LCP-candidacy check (DemoImage.astro, commit e0daa1f, re-validated in
-// 854a5cd) found the browser discounts the low-entropy 32px placeholder as an
-// LCP candidate every run — LCP always resolves to the real streaming <img>,
-// so an opacity:0 fade on the above-fold element directly delays LCP paint.
-// Above-fold/cover images therefore snap (placeholder still paints behind
-// them until the real image decodes); only lazy below-fold images fade.
-// `aboveFold` and `loading === "eager"` are the same boolean by construction
-// (see above), so this is exactly DemoImage's `fade = loading === "lazy"`.
-const ABOVE_FOLD_FADE = false;
-const fade = opts.animation && (aboveFold ? ABOVE_FOLD_FADE : true);
-
-// Pick the layout context once; approx (vw-based) is "good enough" for
-// photos, exact (token-derived) lands the served file exactly on the slot
-// (no resampling) for pixel-perfect.
-const ctx = isCover ? "cover" : "grid";
-const sizes = opts.pixelPerfect ? exact[ctx].sizes : approx[ctx];
-const width = opts.pixelPerfect ? exact[ctx].width : (isCover ? 1280 : 640);
-const widths = opts.pixelPerfect ? exact[ctx].widths : undefined;
-
-// Crop (preserves the cropped-vs-final split exactly): coarse crop is
-// unconditional, pixel-perfect crop honors the per-item opt-in — so "final"
-// only crops when item.crop, "cropped" always crops.
-const perItemOptIn = opts.pixelPerfect; // only final is pp+crop
-const doCrop = opts.crop && (!perItemOptIn || item.crop === true);
-const [cropW, cropH] = isCover ? [16, 9] : [4, 3];
-const height = doCrop ? Math.round((width * cropH) / cropW) : undefined; // 1280→720, 640→480 (matches legacy)
-const fit = doCrop ? "cover" : undefined;
-const position = (doCrop && opts.pixelPerfect) ? "top" : undefined; // final set position:"top"; cropped did not
-
-// LQIP: build a tiny blurred placeholder at build time, matching the displayed
-// aspect so it doesn't distort behind the real image. Inlined as a base64
-// data: URI (not a getImage() URL) so it paints on the first frame with zero
-// network requests — getImage()'s emitted asset isn't written to disk until
-// Astro's post-render image-generation pass, so there's no file to read yet
-// at this point in the pipeline. Instead we go straight to sharp (already a
-// dependency, same library Astro's own image service uses) over the source
-// file's real fs path, exposed by astro:assets as the non-enumerable
-// `fsPath` on ImageMetadata (not in its public type, hence the cast).
-let placeholder: string | undefined;
-if (opts.placeholder === "lqip" && opts.source === "picture" && image) {
-  const [aw, ah] = doCrop ? [cropW, cropH] : [3, 2];
-  const fsPath = (image as unknown as { fsPath: string }).fsPath;
-  const srcBuffer = await readFile(fsPath);
-  const lqBuffer = await sharp(srcBuffer)
-    .resize(32, Math.round((32 * ah) / aw), doCrop ? { fit: "cover" } : undefined)
-    .webp()
-    .toBuffer();
-  placeholder = `data:image/webp;base64,${lqBuffer.toString("base64")}`;
-}
+// The one async side-effect: inline base64 LQIP, built only when the plan
+// asks for it and a real image is present.
+const placeholder = plan.needsLqip && image ? await buildLqip(image, plan) : undefined;
+const showLqip = placeholder !== undefined;
 
 // Props every <Picture> block shares. `layout` stays inline: it's the
 // discriminant of Astro's <Picture> prop union, and spreading it would stop
@@ -110,45 +51,34 @@ const baseProps: {
   class: string;
 } = {
   formats: ["avif", "webp"],
-  loading,
-  fetchpriority,
+  loading: plan.loading,
+  fetchpriority: plan.fetchpriority,
   alt: item.alt,
   class: "block w-full",
 };
 
-// Opt-in hook attribute for img-audit.ts style tooling — no preset sets
-// debug:true, so this is additive and parity-neutral for every strategy.
-const pictureAttributes = opts.debug ? { "data-optimg-debug": "true" } : {};
-
-// Placeholder box behind the <Picture>: "none" renders nothing extra;
-// "skeleton" is a static grey box; "lqip" is the inlined base64 blurred <img>
-// built above, with the cache-guarded fade wired via `fade`. Composability
-// boundary: `animation`/`placeholder` only have a visible effect when
-// `source:"picture"` — "raw"/"public" sources render a bare <img> and ignore
-// most Options fields.
-const showSkeleton = opts.source === "picture" && opts.placeholder === "skeleton";
-const showLqip = opts.source === "picture" && opts.placeholder === "lqip" && placeholder !== undefined;
-
+// Opt-in hook attribute for img-audit.ts style tooling.
+const pictureAttributes = plan.debug ? { "data-optimg-debug": "true" } : {};
 ---
 
 {
-  opts.source === "raw" && image && (
+  plan.source === "raw" && image && (
     /* floor: no srcset, no sizes, no width/height -> worst bytes + CLS */
     <img src={image.src} alt={item.alt} class="block w-full" />
   )
 }
 
 {
-  opts.source === "public" && (
+  plan.source === "public" && (
     /* bash era done right: hand-cut widths + baked blur, manual width/height */
     <img
       src={`/manual/${item.id}-1280.jpg`}
       srcset={`/manual/${item.id}-640.jpg 640w, /manual/${item.id}-960.jpg 960w, /manual/${item.id}-1280.jpg 1280w, /manual/${item.id}-1920.jpg 1920w`}
-      sizes={approx[ctx]}
-      width={isCover ? 1280 : 640}
-      height={isCover ? 853 : 427}
-      loading={loading}
-      fetchpriority={fetchpriority}
+      sizes={approx[plan.ctx]}
+      width={plan.ctx === "cover" ? 1280 : 640}
+      height={plan.ctx === "cover" ? 853 : 427}
+      loading={plan.loading}
+      fetchpriority={plan.fetchpriority}
       alt={item.alt}
       class="block w-full bg-cover"
       style={`background-image:url(/manual/${item.id}-blur.jpg)`}
@@ -157,9 +87,9 @@ const showLqip = opts.source === "picture" && opts.placeholder === "lqip" && pla
 }
 
 {
-  opts.source === "picture" && image && (
+  plan.source === "picture" && image && (
     showLqip ? (
-      <div class={fade ? "reveal-img relative overflow-hidden" : "relative overflow-hidden"}>
+      <div class={plan.fade ? "reveal-img relative overflow-hidden" : "relative overflow-hidden"}>
         <img
           class="absolute inset-0 -z-10 h-full w-full object-cover blur-2xl"
           aria-hidden="true"
@@ -170,28 +100,28 @@ const showLqip = opts.source === "picture" && opts.placeholder === "lqip" && pla
           src={image}
           layout="constrained"
           {...baseProps}
-          width={width}
-          widths={widths}
-          height={height}
-          fit={fit}
-          position={position}
-          sizes={sizes}
-          pictureAttributes={fade ? { ...pictureAttributes, style: "opacity:0" } : pictureAttributes}
+          width={plan.width}
+          widths={plan.widths}
+          height={plan.height}
+          fit={plan.fit}
+          position={plan.position}
+          sizes={plan.sizes}
+          pictureAttributes={plan.fade ? { ...pictureAttributes, style: "opacity:0" } : pictureAttributes}
         />
       </div>
-    ) : showSkeleton ? (
+    ) : plan.showSkeleton ? (
       <div class="relative overflow-hidden">
         <div class="absolute inset-0 -z-10 h-full w-full bg-zinc-200 dark:bg-zinc-800" aria-hidden="true" />
         <Picture
           src={image}
           layout="constrained"
           {...baseProps}
-          width={width}
-          widths={widths}
-          height={height}
-          fit={fit}
-          position={position}
-          sizes={sizes}
+          width={plan.width}
+          widths={plan.widths}
+          height={plan.height}
+          fit={plan.fit}
+          position={plan.position}
+          sizes={plan.sizes}
           pictureAttributes={pictureAttributes}
         />
       </div>
@@ -200,12 +130,12 @@ const showLqip = opts.source === "picture" && opts.placeholder === "lqip" && pla
         src={image}
         layout="constrained"
         {...baseProps}
-        width={width}
-        widths={widths}
-        height={height}
-        fit={fit}
-        position={position}
-        sizes={sizes}
+        width={plan.width}
+        widths={plan.widths}
+        height={plan.height}
+        fit={plan.fit}
+        position={plan.position}
+        sizes={plan.sizes}
         pictureAttributes={pictureAttributes}
       />
     )
