@@ -15,13 +15,18 @@ import sharp from "sharp";
 import type { ImageMetadata } from "astro";
 import type { RenderPlan } from "./render-plan";
 
+// Longest edge (px) of the blurred placeholder baked at build time. Tiny on
+// purpose: big enough to carry color/shape once blurred, small enough that the
+// browser discounts it as an LCP candidate (see ABOVE_FOLD_FADE in render-plan).
+const LQIP_SIZE = 32;
+
 export async function buildLqip(image: ImageMetadata, plan: RenderPlan): Promise<string> {
   const [aw, ah] = plan.aspect;
   const cover = plan.fit === "cover";
   const fsPath = (image as unknown as { fsPath: string }).fsPath;
   const srcBuffer = await readFile(fsPath);
   const lqBuffer = await sharp(srcBuffer)
-    .resize(32, Math.round((32 * ah) / aw), cover ? { fit: "cover" } : undefined)
+    .resize(LQIP_SIZE, Math.round((LQIP_SIZE * ah) / aw), cover ? { fit: "cover" } : undefined)
     .webp()
     .toBuffer();
   return `data:image/webp;base64,${lqBuffer.toString("base64")}`;
