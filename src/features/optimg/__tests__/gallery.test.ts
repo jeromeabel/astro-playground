@@ -11,9 +11,9 @@ describe('gallery', () => {
     expect(new Set(ids).size).toBe(21);
   });
 
-  it('all source values are "picsum"', () => {
+  it('all source values are "unsplash"', () => {
     for (const item of gallery) {
-      expect(item.source, `source for ${item.id}`).toBe('picsum');
+      expect(item.source, `source for ${item.id}`).toBe('unsplash');
     }
   });
 
